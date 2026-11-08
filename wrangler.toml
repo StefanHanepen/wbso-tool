@@ -1,0 +1,12 @@
+# Instellingen voor Cloudflare. Geheimen (APP_SECRET, ANTHROPIC_API_KEY) staan in Cloudflare zelf, niet hier.
+name = "wbso-tool"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+# Laat de variabelen die je in het Cloudflare-dashboard hebt ingesteld staan bij een nieuwe deploy
+keep_vars = true
+
+# De pagina en de RVO-formulieren staan in /public; de Worker controleert eerst de sleutel
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true

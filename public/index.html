@@ -1,0 +1,1332 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<title>MijnWBSO Voordeelcalculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Layout: MijnWBSO-huisstijl. Twee stappen: 1 Invoer (per entiteit een kaart), 2 Besparing (per entiteit een kaart). Wit/zand ~60%, marineblauw ~30%, groen alleen voor actie en voordeel. */
+:root{
+  --bg:#F5F0E6;        /* zand 100: achtergrondvlak */
+  --surface:#FFFFFF;   /* wit */
+  --sunken:#FBF9F5;    /* zand 50 */
+  --line:#D9DDE4;      /* inkt 200 */
+  --line-sand:#DCCEB4; /* zand 300 */
+  --head:#0C1A31;      /* marineblauw 900: koppen */
+  --navy:#182F57;      /* marineblauw 700: hoofdkleur */
+  --navy-dark:#122443; /* marineblauw 800 */
+  --navy-soft:#D7E0EE; /* marineblauw 100 */
+  --link:#2F5088;      /* marineblauw 500 */
+  --fg:#363E4C;        /* inkt 700: broodtekst */
+  --muted:#636D7F;     /* inkt 500 */
+  --accent:#182F57;    /* structuur */
+  --accent-soft:#D7E0EE;
+  --action:#377132;    /* groen 600: knoppen */
+  --good:#2C5A29;      /* groen 700: groene tekst */
+  --good-soft:#EFF6EE; /* groen 50 */
+  --on-dark:#FFFFFF;
+  --warn:#9A5B12; --warn-soft:#FBEFD9;
+  --f-display:"Hanken Grotesk",Arial,sans-serif;
+  --f-body:"Hanken Grotesk",Arial,sans-serif;
+  --f-num:"Hanken Grotesk",Arial,sans-serif;
+}
+:root,:root[data-theme="dark"]{color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14.5px;line-height:1.45;font-variant-numeric:tabular-nums}
+.wrap{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;color:var(--head);font-weight:600;font-size:20px;letter-spacing:-.01em;text-decoration:none}
+.logo svg{width:34px;height:34px;flex:none}
+.brandbar .dom{font-size:12px;color:var(--muted)}
+.hero{background:var(--navy-dark);border-radius:14px;padding:22px 24px;display:grid;gap:6px}
+.hero h1{color:#FFFFFF}
+.hero .sub{color:#D7E0EE}
+h1,h2{font-family:var(--f-display);margin:0;text-wrap:balance;color:var(--head)}
+h1{font-size:28px;font-weight:600;line-height:1.1}
+h2{font-size:20px;font-weight:600;display:flex;align-items:center;gap:10px}
+h2 .step{font-size:12px;font-weight:600;background:var(--navy);color:#FFFFFF;border-radius:999px;width:24px;height:24px;display:inline-grid;place-items:center}
+h3{font-size:13px;font-weight:600;color:var(--head);margin:0 0 8px}
+.sub{color:var(--muted);max-width:72ch;margin:4px 0 0;font-size:15px;line-height:1.5}
+section{display:grid;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(12,26,49,.05)}
+.ent-in{padding:16px 18px 18px;display:grid;gap:14px}
+.ent-head{display:flex;align-items:center;gap:8px}
+.ent-head input{font-family:var(--f-display);font-size:18px;font-weight:600;border:1px solid transparent;background:transparent;color:var(--head);padding:2px 6px;margin-left:-6px;border-radius:6px;flex:1;min-width:0}
+.ent-head input:hover,.ent-head input:focus{border-color:var(--line);background:var(--sunken)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.cols>div+div{border-top:1px solid var(--line);padding-top:14px}
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+.ptable th{font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:0 5px 6px;white-space:nowrap}
+.ptable td{padding:3px 3px}
+input[type=number],input[type=text].f{width:100%;font-family:var(--f-num);font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;min-width:64px}
+input[type=text].f{min-width:110px}
+input:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--link);outline-offset:1px}
+.fld{display:grid;gap:4px}
+.fld label{font-size:12px;font-weight:500;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted)}
+button{font:inherit;cursor:pointer;border-radius:8px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--head);padding:7px 14px;font-weight:500}
+.btn:hover{border-color:var(--link);color:var(--link)}
+.btn.sm{padding:5px 11px;font-size:13px}
+.btn.primary{background:var(--action);border-color:var(--action);color:#FFFFFF;font-weight:600}
+.btn.primary:hover{filter:brightness(1.1);color:#FFFFFF}
+.btn.lg{padding:12px 22px;font-size:15px}
+.steps{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap}
+.placeholder{padding:22px 24px;border-style:dashed}
+.mdw{display:flex;gap:6px 16px;flex-wrap:wrap}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--fg);font-weight:400}
+.ph-t{font-weight:600;color:var(--head);margin-bottom:4px}
+.placeholder p{margin:0;color:var(--muted);max-width:75ch}
+.dossiers{display:grid;gap:10px}
+.dos{display:grid;grid-template-columns:minmax(140px,220px) minmax(0,1fr);gap:10px;align-items:center}
+.dos-n{font-weight:600;color:var(--head);font-size:14px}
+.dbar{display:flex;gap:4px;flex-wrap:wrap}
+.dst{flex:1 1 90px;min-width:90px;border-radius:7px;padding:5px 8px;font-size:11.5px;line-height:1.25;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.dst b{display:block;font-weight:600;font-size:11px;color:var(--head)}
+.dst.done{background:#EFF6EE;border-color:#B9D6B4;color:#2C5A29}
+.dst.active{background:#FBEFD9;border-color:#E8C98F;color:#7A4A10}
+.dst.idle{opacity:.75}
+@media (max-width:720px){.dos{grid-template-columns:1fr}}
+.stp{display:flex;align-items:center;gap:8px;border:none;background:none;color:var(--muted);font-weight:500;padding:4px 2px}
+.stp span{width:24px;height:24px;border-radius:999px;display:inline-grid;place-items:center;font-size:12px;border:1px solid var(--line-sand);background:var(--surface)}
+.stp.on{color:var(--head);font-weight:600}
+.stp.on span{background:var(--navy);border-color:var(--navy);color:#FFFFFF}
+.steps .sep{flex:0 0 14px;height:1px;background:var(--line-sand)}
+.navbar{display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--line-sand);padding-top:16px}
+.addcard{border:2px dashed var(--line-sand);background:transparent;color:var(--navy);border-radius:12px;padding:18px;font-weight:600;font-size:15px;display:grid;gap:2px;justify-items:center}
+.addcard span{font-weight:400;font-size:12px;color:var(--muted)}
+.addcard:hover{border-color:var(--navy);background:var(--surface)}
+.x{border:none;background:none;color:var(--muted);font-size:18px;line-height:1;padding:4px 8px}
+.x:hover{color:var(--warn)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+details.params summary{padding:12px 18px;cursor:pointer;font-weight:600;color:var(--head)}
+.pv{display:grid;gap:1px;border-left:2px solid var(--line-sand);padding-left:10px}
+.pl{font-size:12px;font-weight:500;color:var(--muted)}
+.pval{font-size:16px;font-weight:600;color:var(--head)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px 16px;padding:0 18px 18px}
+.toggle{display:flex;gap:8px;align-items:center;font-size:13px}
+select{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 9px;max-width:100%}
+.q{display:grid;gap:4px;flex:1 1 280px;max-width:420px;background:var(--sunken);border:none;border-radius:10px;padding:12px 14px}
+
+/* uitkomst */
+.total{background:var(--navy);color:#FFFFFF;border-radius:14px;padding:20px 22px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
+.total .l{font-size:13px;color:#D7E0EE}
+.total .v{font-size:36px;font-weight:600;line-height:1.05;color:#FFFFFF}
+.total .side{display:flex;gap:26px;flex-wrap:wrap}
+.total .side div{display:grid}
+.total .side span:last-child{font-size:17px;font-weight:600}
+.outs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.out{padding:18px 20px;display:grid;gap:12px;align-content:start}
+.out-head{display:flex;justify-content:space-between;gap:8px;align-items:start;flex-wrap:wrap}
+.out-name{font-weight:600;font-size:17px;color:var(--head)}
+.big{background:var(--good-soft);border-radius:10px;padding:12px 14px}
+.big .l{font-size:12px;color:var(--muted)}
+.big .v{font-size:30px;font-weight:600;color:var(--good);line-height:1.15}
+.pill{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill.good{background:var(--accent-soft);color:var(--navy)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.rows{display:grid;gap:4px;border-top:1px solid var(--line);padding-top:10px}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px}
+.row span:last-child{white-space:nowrap}
+.row.dim{color:var(--muted)}
+.row.strong{font-weight:600;color:var(--head)}
+.note{font-size:12px;color:var(--muted);max-width:92ch;margin:0}
+.cta{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surface);border-radius:12px;padding:16px 20px}
+.cta p{margin:0;color:var(--head);font-weight:500}
+.cta a{background:var(--action);color:#FFFFFF;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:8px}
+.cta a:hover{filter:brightness(1.1)}
+@media (max-width:760px){.total .v{font-size:30px}h1{font-size:24px}}
+/* stap 3: S&O-projecten */
+.uren-tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.uren-tbl th{font-size:12px;font-weight:500;color:var(--muted);text-align:right;padding:6px 10px;border-bottom:1px solid var(--line)}
+.uren-tbl th:first-child,.uren-tbl td:first-child{text-align:left}
+.uren-tbl td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.uren-tbl tr:nth-child(even) td{background:var(--sunken)}
+.proj{padding:0;overflow:hidden}
+.proj-head{display:flex;align-items:center;gap:10px;padding:14px 18px;flex-wrap:wrap;cursor:pointer}
+.proj-head .code{font-size:12px;font-weight:600;color:#FFFFFF;background:var(--navy);border-radius:6px;padding:3px 8px}
+.proj-head .t{font-weight:600;color:var(--head);font-size:16px;flex:1;min-width:160px}
+.proj-head .meta{font-size:12.5px;color:var(--muted)}
+.proj-body{border-top:1px solid var(--line);padding:16px 18px 18px;display:grid;gap:18px}
+.pgrid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 14px}
+.pgrid2 .fld.wide{grid-column:1/-1}
+.basis-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 170px;gap:12px 14px;align-items:end}
+.basis-grid .fld.wide{grid-column:1/-1}
+.basis-grid input,.basis-grid select{width:100%;height:40px;min-width:0;font-size:14px;padding:0 10px}
+.basis-grid input[type=number]{text-align:right}
+@media (max-width:720px){.basis-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.basis-grid .fld:nth-child(3){grid-column:1/-1}}
+@media (max-width:460px){.basis-grid{grid-template-columns:minmax(0,1fr)}}
+
+textarea{width:100%;font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:64px;resize:vertical;line-height:1.45}
+textarea:focus-visible,input[type=date]:focus-visible{outline:2px solid var(--link);outline-offset:1px}
+input[type=date]{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.blk{display:grid;gap:10px}
+.blk>h4{margin:0;font-size:15px;font-weight:600;color:var(--head)}
+.blk>p.hint{margin:-6px 0 0}
+.qs{display:grid;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.qrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.qrow:first-child{border-top:none}
+.qrow:nth-child(even){background:var(--sunken)}
+.qrow .qq{font-size:14px;color:var(--fg)}
+.qrow .qw{font-size:12px;color:var(--muted);margin-top:2px}
+.qrow.bad .qq{color:#9A2B1F}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:none;border-radius:0;background:none;padding:6px 11px;font-size:13px;color:var(--fg)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on.ja{background:#EFF6EE;color:#2C5A29;font-weight:600}
+.seg button.on.nee{background:#FBEDEA;color:#9A2B1F;font-weight:600}
+.seg button.on.twijfel{background:#FBEFD9;color:#9A5B12;font-weight:600}
+@media (max-width:620px){.qrow{grid-template-columns:1fr}}
+.list{display:grid;gap:8px}
+.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start}
+.li .tag{font-size:12px;font-weight:600;color:var(--navy);background:var(--navy-soft);border-radius:6px;padding:4px 7px;margin-top:6px}
+.li .sub2{display:grid;gap:6px}
+.wp{display:grid;grid-template-columns:minmax(0,1fr) 150px 90px auto;gap:8px;align-items:center}
+@media (max-width:620px){.wp{grid-template-columns:1fr 1fr}}
+.lint{font-size:12px;color:#9A5B12;margin:2px 0 0}
+.verdict{border-radius:12px;padding:14px 16px;display:grid;gap:6px}
+.verdict .vh{font-weight:600;font-size:16px}
+.verdict ul{margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:3px}
+.v-green{background:#EFF6EE;color:#2C5A29}
+.v-amber{background:#FBEFD9;color:#7A4A10}
+.v-red{background:#FBEDEA;color:#8A2418}
+.v-grey{background:var(--sunken);color:var(--fg)}
+.pill.v-green,.pill.v-amber,.pill.v-red,.pill.v-grey{font-weight:600}
+.exp pre{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--sunken);border-radius:10px;padding:12px 14px;margin:0;max-height:320px;overflow:auto;color:var(--fg)}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.qrow2{display:grid;gap:6px;padding:12px 14px;border-top:1px solid var(--line);background:var(--surface)}
+.qrow2:first-child{border-top:none}
+.qrow2:nth-child(even){background:var(--sunken)}
+.qtop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.qterm{font-size:13px;font-weight:600;color:var(--head)}
+.qrow2 .qq{font-size:14px;color:var(--fg)}
+.qrow2 .qw{font-size:12px;color:#9A5B12}
+.qrow2.bad .qw{color:#9A2B1F}
+.qrow2.bad{box-shadow:inset 3px 0 0 #9A2B1F}
+.qrow2.doubt{box-shadow:inset 3px 0 0 #C98A2B}
+.qnote{height:36px}
+@media (max-width:620px){.qtop{grid-template-columns:1fr}}
+.lintbox:empty{display:none}
+/* stap 4 */
+.rgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:0 18px 18px}
+.rgrid ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
+.rgrid .src{font-size:11.5px;color:var(--muted)}
+@media (max-width:760px){.rgrid{grid-template-columns:1fr}}
+.app{padding:18px 20px;display:grid;gap:16px}
+.app-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.app-t{font-size:18px;margin:0}
+.basis4{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) repeat(3,auto);gap:10px 16px;align-items:end;background:var(--sunken);border-radius:10px;padding:12px 14px}
+.basis4 input,.basis4 select{width:100%;height:38px;font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0 9px}
+.fact{display:grid;gap:2px;padding-bottom:4px}
+.fact span{font-size:12px;color:var(--muted)}
+.fact b{font-weight:600;color:var(--head)}
+@media (max-width:860px){.basis4{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.basis4{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.p4{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:12px}
+.p4-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.p4-head .code{font-size:12px;font-weight:600;color:#FFFFFF;background:var(--navy);border-radius:6px;padding:3px 8px}
+.p4-head .t{font-weight:600;color:var(--head);font-size:16px;flex:1;min-width:160px}
+.p4-head .meta,.app-head .meta{font-size:12.5px;color:var(--muted)}
+.g4grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 14px}
+.g4grid .fld:nth-child(1),.g4grid .fld:nth-child(2),.g4grid .fld:nth-child(3),.g4grid .fld:nth-child(4){grid-column:1/-1}
+@media (max-width:720px){.g4grid{grid-template-columns:1fr}}
+.checks{background:var(--sunken);border-radius:10px;padding:12px 14px}
+.ck-head{font-weight:600;color:var(--head);display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.checks ul{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13.5px}
+.checks li.ok{color:#2C5A29}
+.checks li.no{color:#9A5B12}
+.formtag{font-size:13px;color:var(--muted)}
+.pdfbar{border-top:1px solid var(--line);padding-top:12px}
+.vtabs{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;justify-self:start;background:var(--surface)}
+.vtabs button{border:none;border-radius:0;background:none;padding:7px 14px;font-size:13.5px;color:var(--fg);font-weight:500}
+.vtabs button+button{border-left:1px solid var(--line)}
+.vtabs button.on{background:var(--navy);color:#FFFFFF}
+.fv{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.fv-top{background:var(--navy-dark);color:#FFFFFF;padding:14px 18px}
+.fv-form{font-weight:600;font-size:16px}
+.fv-sub{font-size:12px;color:#D7E0EE}
+.fv-sec{padding:14px 18px;border-top:1px solid var(--line);display:grid;gap:10px}
+.fv-sec:nth-of-type(even){background:var(--sunken)}
+.fv-sec h5{margin:0;font-size:15px;font-weight:600;color:var(--head)}
+.fv-dl{display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:6px 14px;margin:0;font-size:14px}
+.fv-dl dt{color:var(--muted)}
+.fv-dl dd{margin:0;color:var(--head);font-weight:500}
+.fv-lim{font-size:11.5px}
+.fv-q{display:grid;gap:4px}
+.fv-qh{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.fv-qt{font-weight:600;color:var(--head);font-size:14px}
+.fv-help{font-size:12px;color:var(--muted);font-style:italic}
+.fv-val{white-space:pre-wrap;font-size:14px;line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg)}
+.fv-empty{color:var(--muted);font-style:italic}
+.fv-cnt{font-size:12px;color:var(--muted);white-space:nowrap}
+.fv-cnt.over{color:#9A2B1F;font-weight:600}
+.fv-line{font-size:14px;color:var(--fg)}
+.fv-tbl{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--surface)}
+.fv-tbl th{background:var(--navy);color:#FFFFFF;font-weight:600;text-align:left;padding:7px 10px}
+.fv-tbl td{padding:7px 10px;border-bottom:1px solid var(--line)}
+.fv-tbl tr:nth-child(even) td{background:#FBF9F5}
+.fv-intern{padding:10px 18px;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line-sand)}
+@media (max-width:620px){.fv-dl{grid-template-columns:1fr}}
+
+.formtag a{color:var(--link)}
+.g4list{display:grid;gap:14px}
+.flab{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.flab label{font-size:13px;font-weight:600;color:var(--head)}
+.cnt{font-size:12px;color:var(--muted);white-space:nowrap}
+.cnt.over{color:#9A2B1F;font-weight:600}
+details.doc{border-top:1px solid var(--line);padding-top:12px}
+details.doc summary{cursor:pointer;font-weight:600;color:var(--head);padding-bottom:8px}
+details.doc pre{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--sunken);border-radius:10px;padding:14px;margin:0;max-height:520px;overflow:auto;color:var(--fg)}
+
+.pgrid2.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:620px){.pgrid2.two{grid-template-columns:minmax(0,1fr)}}
+
+</style>
+
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <a class="logo" aria-label="MijnWBSO">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#182F57"/><polyline points="9,28 17,21 22,24 31,13" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="31" cy="13" r="3.6" fill="#468A3E"/></svg>
+      MijnWBSO
+    </a>
+    <span class="dom">Intern gebruik</span>
+  </div>
+  <header class="hero">
+    <h1>WBSO-voordeel per entiteit</h1>
+    <p class="sub">Interne rekentool. Voeg de entiteiten van een klant toe en vul per entiteit de S&amp;O-medewerkers in. Je ziet direct de maximale teruggave via de S&amp;O-afdrachtvermindering, op basis van de RVO-regels 2026.</p>
+  </header>
+
+  <nav class="steps" aria-label="Stappen" id="stepsnav"></nav>
+
+  <section aria-labelledby="h-in" id="scr-in">
+    <div class="toolbar" style="justify-content:space-between">
+      <h2 id="h-in"><span class="step">1</span>Invoer <span class="hint" id="ent-count" style="font-family:var(--f-body);font-weight:500"></span></h2>
+      <div class="toolbar">
+        <span class="hint" id="reset-msg" hidden></span>
+        <button class="btn" id="clear" type="button">Leeg beginnen</button>
+        <button class="btn" id="reset" type="button">Voorbeeld laden</button>
+        <button class="btn primary" id="add-ent" type="button">+ Entiteit toevoegen</button>
+      </div>
+    </div>
+    <div id="inputs" style="display:grid;gap:12px"></div>
+    <button class="addcard" id="add-ent2" type="button">+ Entiteit toevoegen<span>Holding, werkmaatschappij of andere inhoudingsplichtige</span></button>
+    <details class="panel params">
+      <summary>Uitgangspunten (RVO-parameters 2026, vast)</summary>
+      <div class="pgrid" id="params"></div>
+    </details>
+    <div class="navbar">
+      <span class="hint" id="in-summary"></span>
+      <button class="btn primary lg" type="button" data-go="out">Bereken je voordeel →</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-out" id="scr-out" hidden>
+    <div class="toolbar" style="justify-content:space-between">
+      <h2 id="h-out"><span class="step">2</span>Besparing: maximale teruggave</h2>
+      <button class="btn" type="button" data-go="in">← Terug naar invoer</button>
+    </div>
+    <div class="total">
+      <div><div class="l">Maximale teruggave alle entiteiten, per jaar</div><div class="v" id="t-max">–</div></div>
+      <div class="side">
+        <div><span class="l">Per maand</span><span id="t-afdr">–</span></div>
+        <div><span class="l">S&amp;O-uren per jaar</span><span id="t-uren">–</span></div>
+      </div>
+    </div>
+    <div class="outs" id="outputs"></div>
+    <p class="note">Maximale teruggave = het theoretische WBSO-voordeel bij het maximale aantal S&amp;O-uren per medewerker (85% van de contracturen, met een plafond van 1.600 uur). De teruggave wordt verrekend met de af te dragen loonbelasting/premie volksverzekeringen van alle medewerkers van de entiteit; of die afdracht hoog genoeg is, valt buiten deze berekening. Indicatieve berekening, geen fiscaal advies.</p>
+    <div class="navbar">
+      <button class="btn lg" type="button" data-go="in">← Terug naar invoer</button>
+      <button class="btn primary lg" type="button" data-go="proj">Volgende: S&amp;O-projecten →</button>
+    </div>
+  </section>
+  <section aria-labelledby="h-proj" id="scr-proj" hidden>
+    <div class="toolbar" style="justify-content:space-between">
+      <h2 id="h-proj"><span class="step">3</span>Projectvragen &amp; informatie</h2>
+      <div class="toolbar">
+        <button class="btn" type="button" data-go="out">← Terug naar besparing</button>
+        <button class="btn primary" type="button" data-pa="add">+ Project toevoegen</button>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:-6px">Maak per entiteit de projecten aan. Doe per project de korte S&amp;O-toets en beschrijf het project in je eigen woorden. In stap 6 wordt het omgezet naar de RVO-aanvraag. De vragen volgen de RVO-handleiding WBSO en de checklist van Arnoud (Finestri).</p>
+    <div class="panel" style="padding:14px 18px"><h3>Dossierstatus per entiteit</h3><div id="dossiers3" class="dossiers"></div></div>
+    <div class="panel" style="padding:14px 18px">
+      <h3>Uren per entiteit</h3>
+      <div class="tbl-scroll"><table class="uren-tbl" id="uren-tbl"></table></div>
+    </div>
+    <div id="projects" style="display:grid;gap:12px"></div>
+    <button class="addcard" type="button" data-pa="add">+ Project toevoegen<span>Titel, entiteit en type; daarna toets en omschrijving</span></button>
+    <p class="note">De toets is een hulpmiddel bij het voorbereiden van de aanvraag, geen beoordeling door RVO. Bronnen: RVO Handleiding WBSO (§1.4.1 ontwikkelingsproject, §1.4.2 technisch-wetenschappelijk onderzoek, Bijlage A) en de checklist vóór indiening en projectopbouw van Arnoud Schipper (Finestri, juli 2026).</p>
+    <div class="navbar">
+      <button class="btn lg" type="button" data-go="out">← Terug naar besparing</button>
+      <button class="btn primary lg" type="button" data-go="vv">Volgende: Vormvrij indienen →</button>
+    </div>
+  </section>
+  <section aria-labelledby="h-app" id="scr-app" hidden>
+    <div class="toolbar" style="justify-content:space-between">
+      <h2 id="h-app"><span class="step">6</span>Inhoud afronden: RVO-aanvraag</h2>
+      <button class="btn" type="button" data-go="km">← Terug naar ketenmachtiging</button>
+    </div>
+    <p class="sub" style="margin-top:-6px">Per entiteit de aanvraag in het sjabloon van RVO. Verwerk elk project tot aanvraagtekst: Claude zet de projectinformatie en de toets uit stap 3 om in de juiste bewoordingen, volgens de schrijfregels van RVO en Arnoud hieronder.</p>
+    <details class="panel"><summary style="padding:12px 18px;cursor:pointer;font-weight:600;color:var(--head)">Schrijfregels (RVO-handleiding WBSO en Arnoud, Finestri)</summary><div id="rules4"></div></details>
+    <div id="app4" style="display:grid;gap:14px"></div>
+    <p class="note">Hulpmiddel bij het opstellen van de aanvraag. De aanvraag dien je in via het RVO-portaal of via Finestri; laat de tekst vóór indiening controleren.</p>
+    <div class="navbar"><button class="btn lg" type="button" data-go="proj">← Terug naar projectvragen</button><button class="btn primary lg" type="button" data-go="va">Volgende: Volledig aanvullen →</button></div>
+  </section>
+  <section aria-labelledby="h-vv" id="scr-vv" hidden>
+    <div class="toolbar" style="justify-content:space-between"><h2 id="h-vv"><span class="step">4</span>Vormvrij indienen</h2></div>
+    <div class="panel placeholder"><div class="ph-t">Deze stap wordt nog ingericht</div><p>De intermediair dient met de eigen eHerkenning (eH3) een vormvrije WBSO-aanvraag in voor de klant. Een vormvrije aanvraag is een tussenstap en geldt nooit als afgeronde aanvraag.</p></div>
+    <div class="navbar"><button class="btn lg" type="button" data-go="proj">← Vorige stap</button><button class="btn primary lg" type="button" data-go="km">Volgende stap →</button></div>
+  </section>
+  <section aria-labelledby="h-km" id="scr-km" hidden>
+    <div class="toolbar" style="justify-content:space-between"><h2 id="h-km"><span class="step">5</span>Ketenmachtiging</h2></div>
+    <div class="panel placeholder"><div class="ph-t">Deze stap wordt nog ingericht</div><p>De klant regelt via Reconi de ketenmachtiging voor de intermediair (eH3) voor de RVO-diensten.</p></div>
+    <div class="navbar"><button class="btn lg" type="button" data-go="vv">← Vorige stap</button><button class="btn primary lg" type="button" data-go="app">Volgende stap →</button></div>
+  </section>
+  <section aria-labelledby="h-va" id="scr-va" hidden>
+    <div class="toolbar" style="justify-content:space-between"><h2 id="h-va"><span class="step">7</span>Volledig aanvullen</h2></div>
+    <div class="panel placeholder"><div class="ph-t">Deze stap wordt nog ingericht</div><p>Zodra de inhoud gereed is én de ketenmachtiging actief is, wordt de vormvrije aanvraag volledig aangevuld bij RVO.</p></div>
+    <div class="navbar"><button class="btn lg" type="button" data-go="app">← Vorige stap</button><button class="btn primary lg" type="button" data-go="mon">Volgende stap →</button></div>
+  </section>
+  <section aria-labelledby="h-mon" id="scr-mon" hidden>
+    <div class="toolbar" style="justify-content:space-between"><h2 id="h-mon"><span class="step">8</span>RVO-monitoring</h2></div>
+    <div class="panel placeholder"><div class="ph-t">Deze stap wordt nog ingericht</div><p>Na volledige indiening worden RVO-vragen, aanvullingsverzoeken, deadlines, correspondentie, het besluit en de S&amp;O-verklaring gevolgd.</p></div>
+    <div class="navbar"><button class="btn lg" type="button" data-go="va">← Vorige stap</button><button class="btn primary lg" type="button" data-go="bes">Volgende stap →</button></div>
+  </section>
+  <section aria-labelledby="h-bes" id="scr-bes" hidden>
+    <div class="toolbar" style="justify-content:space-between"><h2 id="h-bes"><span class="step">9</span>Besluit</h2></div>
+    <div class="panel placeholder"><div class="ph-t">Deze stap wordt nog ingericht</div><p>Het besluit van RVO en de S&amp;O-verklaring per dossier.</p></div>
+    <div class="navbar"><button class="btn lg" type="button" data-go="mon">← Vorige stap</button></div>
+  </section>
+
+
+</div>
+
+<script>
+const PARAMS=[
+ ["forfUur","Forfaitair S&O-uurloon (€)",1,"2026: € 29 · 2027: € 33"],
+ ["pct1n","1e schijf regulier (%)",1,""],
+ ["pct1t","1e schijf technostarter (%)",1,"max. 3 jaar"],
+ ["pct2","2e schijf (%)",0.01,""],
+ ["grens","Schijfgrens 1e schijf (€)",1,"per entiteit"],
+ ["kf1","Kostenforfait t/m urengrens (€/uur)",1,""],
+ ["kf2","Kostenforfait boven urengrens (€/uur)",1,""],
+ ["kfGrens","Urengrens kostenforfait (uur)",1,"per entiteit"],
+ ["beschikb","Beschikbaarheidsfactor (%)",1,"verlof en feestdagen"],
+ ["plafond","Eigen plafond S&O-uren p.p./jaar",1,""],
+ ["weken","Werkweken per jaar",1,"voor de omrekening naar uren per week"]
+];
+const BASE_PARAMS={forfUur:29,pct1n:36,pct1t:50,pct2:16,grens:391020,kf1:10,kf2:4,kfGrens:1800,beschikb:85,plafond:1600,weken:47,marge:10};
+const newEnt=(name)=>({id:Math.random().toString(36).slice(2,9),name,uurloon:29,techno:false,so:[{n:"S&O-medewerker 1",cu:40,sal:0,bij:0,lh:0}],nso:{aantal:0,sal:0,lh:0}});
+const EXAMPLE={
+ params:{...BASE_PARAMS},
+ ents:[
+  {name:"Voorbeeld Holding B.V.",uurloon:29,techno:true,so:[{n:"DGA",cu:40,sal:58000,bij:0,lh:26}],nso:{aantal:0,sal:0,lh:0}},
+  {name:"Voorbeeld Werkmaatschappij B.V.",uurloon:29,techno:false,so:[{n:"Developer",cu:40,sal:55000,bij:0,lh:24},{n:"Data scientist",cu:32,sal:48000,bij:0,lh:22}],nso:{aantal:0,sal:0,lh:0}}
+ ]
+};
+const KEY="wbso-opt-v3";
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.ents)S=structuredClone(EXAMPLE);
+S.params={...BASE_PARAMS};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+const eur=v=>"€ "+Math.round(v).toLocaleString("nl-NL");
+const nf=(v,d=0)=>v.toLocaleString("nl-NL",{minimumFractionDigits:d,maximumFractionDigits:d});
+const num=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+
+function pct1(e){const p=S.params;return (e.techno?p.pct1t:p.pct1n)/100}
+// S&O-uurloon zoals RVO het bepaalt: geen WBSO vorig jaar -> forfaitair uurloon;
+// anders het ongewogen gemiddelde van (fiscaal jaarloon / verloonde uren) van de S&O-medewerkers, naar boven afgerond.
+const SITS=[
+ {l:"Startend bedrijf, eerste jaar WBSO",techno:true,vorig:false},
+ {l:"Startend bedrijf, 2e of 3e jaar WBSO",techno:true,vorig:true},
+ {l:"Bestaand bedrijf, eerste jaar WBSO",techno:false,vorig:false},
+ {l:"Bestaand bedrijf, al eerder WBSO (of 4e jaar en later)",techno:false,vorig:true}
+];
+const sitOf=e=>SITS.findIndex(s=>s.techno===!!e.techno&&s.vorig===!!e.vorig);
+function uurloonE(e){
+  if(!e.vorig)return {v:num(S.params.forfUur),bron:"forfait"};
+  const l=e.so.filter(x=>num(x.cu)>0&&num(x.sal)>0).map(x=>(num(x.sal)+num(x.bij))/(num(x.cu)*52));
+  if(!l.length)return {v:num(S.params.forfUur),bron:"forfait"};
+  return {v:Math.ceil(l.reduce((s,x)=>s+x,0)/l.length),bron:"berekend"};
+}
+function grondslag(e,H){const p=S.params;return H*uurloonE(e).v+Math.min(H,p.kfGrens)*p.kf1+Math.max(0,H-p.kfGrens)*p.kf2}
+function voordeel(e,H){const p=S.params,G=grondslag(e,H);return Math.min(G,p.grens)*pct1(e)+Math.max(0,G-p.grens)*p.pct2/100}
+function urenVoor(e,A){if(A<=0||voordeel(e,1)<=0)return 0;let lo=0,hi=1;while(voordeel(e,hi)<A&&hi<1e7)hi*=2;
+  for(let i=0;i<60;i++){const m=(lo+hi)/2;voordeel(e,m)>=A?hi=m:lo=m}return hi}
+// Conservatieve schatting loonbelasting/premie volksverzekeringen 2026 (onder AOW-leeftijd):
+// box 1-tarief over fiscaal loon minus volledige algemene heffingskorting en maximale arbeidskorting.
+// Dit is de enige heffing waarmee de S&O-afdrachtvermindering verrekend mag worden.
+function lhEst(loon){
+  loon=Math.max(0,loon);
+  const b1=38883,b2=78426;
+  const tax=Math.min(loon,b1)*0.3575+Math.max(0,Math.min(loon,b2)-b1)*0.3756+Math.max(0,loon-b2)*0.495;
+  const ahk=Math.max(0,3115-Math.max(0,loon-29736)*0.06398);
+  const ak=loon<=0?0:Math.max(0,5685-Math.max(0,loon-45592)*0.0651);
+  return Math.max(0,tax-ahk-ak);
+}
+function capP(pr){const p=S.params;return Math.min(num(pr.cu)*52*p.beschikb/100,p.plafond)}
+
+function calc(e){
+  const p=S.params,ul=uurloonE(e).v;
+  const verdeling=e.so.map(pr=>({n:pr.n,h:capP(pr)}));
+  const H=verdeling.reduce((t,x)=>t+x.h,0);
+  const loon=H*ul, forf=Math.min(H,p.kfGrens)*p.kf1+Math.max(0,H-p.kfGrens)*p.kf2;
+  return {H,ul,loon,forf,G:loon+forf,max:voordeel(e,H),verdeling};
+}
+
+function personRow(ei,pi,pr){
+  const a=(k,extra)=>`id="e${ei}p${pi}${k}" data-e="${ei}" data-p="${pi}" data-k="${k}" ${extra}`;
+  return `<tr>
+   <td><input class="f" type="text" ${a("n",`value="${esc(pr.n)}" aria-label="Naam"`)}></td>
+   <td><input type="number" ${a("cu",`value="${pr.cu}" min="0" max="60" step="1" aria-label="Contracturen per week"`)}></td>
+   <td><input type="number" ${a("sal",`value="${pr.sal}" min="0" step="500" aria-label="Bruto jaarsalaris"`)}></td>
+   <td><input type="number" ${a("bij",`value="${pr.bij}" min="0" step="100" aria-label="Bijtelling per jaar"`)}></td>
+   <td><button class="x" type="button" data-del-p="${ei}:${pi}" aria-label="Medewerker verwijderen">×</button></td>
+  </tr>`}
+function buildInputs(){
+  document.getElementById("inputs").innerHTML=S.ents.map((e,ei)=>`
+  <div class="panel ent-in">
+   <div class="ent-head">
+     <input type="text" id="e${ei}name" data-e="${ei}" data-k="name" value="${esc(e.name)}" aria-label="Naam entiteit">
+     <button class="btn sm" type="button" data-dup-e="${ei}">Kopiëren</button>
+     <button class="x" type="button" data-del-e="${ei}" aria-label="Entiteit verwijderen">×</button>
+   </div>
+   <div class="toolbar" style="gap:18px">
+     <div class="q" style="max-width:560px">
+       <label for="e${ei}sit" style="font-size:13px;font-weight:700">Wat is de situatie van deze entiteit?</label>
+       <select id="e${ei}sit" data-e="${ei}" data-k="sit">
+         ${SITS.map((s,i)=>`<option value="${i}" ${sitOf(e)===i?"selected":""}>${s.l}</option>`).join("")}
+       </select>
+       <span class="hint">Startend = de entiteit bestaat korter dan 5 jaar, of had in de afgelopen 5 jaar minstens 1 jaar geen personeel.</span>
+       <span class="hint" id="e${ei}ulv" style="color:var(--fg)"></span>
+     </div>
+   </div>
+   <div class="cols">
+    <div>
+     <h3>S&amp;O-medewerkers</h3>
+     <div class="tbl-scroll"><table class="ptable">
+      <thead><tr><th>Naam</th><th>Contract u/wk</th><th>Bruto salaris €/jr</th><th>Bijtelling €/jr</th><th></th></tr></thead>
+      <tbody>${e.so.map((pr,pi)=>personRow(ei,pi,pr)).join("")}</tbody>
+     </table></div>
+     <button class="btn sm" type="button" data-add-p="${ei}" style="margin-top:6px">+ S&amp;O-medewerker</button>
+    </div>
+   </div>
+  </div>`).join("");
+}
+function buildParams(){
+  const p=S.params;
+  const fmt=(k,v)=>/^(pct|beschikb|marge)/.test(k)?nf(v,v%1?2:0)+"%":/^(grens|kf1|kf2|forfUur)$/.test(k)?"€ "+nf(v,0)+(k.startsWith("kf")||k==="forfUur"?" per uur":""):k==="weken"?nf(v)+" weken":nf(v)+" uur";
+  document.getElementById("params").innerHTML=
+   PARAMS.map(([k,l,st,h])=>`<div class="pv"><span class="pl">${l.replace(/\s*\((%|€|€\/uur|uur)\)/,"")}</span><span class="num pval">${fmt(k,p[k])}</span>${h?`<span class="hint">${h}</span>`:""}</div>`).join("");
+}
+function update(){
+  const p=S.params;let tMax=0,tH=0;
+  S.ents.forEach((e,ei)=>{
+    const ul=uurloonE(e),uh=document.getElementById(`e${ei}ulv`);
+    if(uh)uh.innerHTML=(e.vorig&&ul.bron==="berekend")
+      ?`→ Gerekend met <b class="num">${pct1(e)*100}%</b> en uurloon <b class="num">€ ${ul.v}</b> (berekend uit de salarissen, zoals RVO doet na een eerder WBSO-jaar).`
+      :e.vorig
+      ?`→ Gerekend met <b class="num">${pct1(e)*100}%</b> en uurloon <b class="num">€ ${ul.v}</b> (forfait tot je salarissen invult).`
+      :`→ Gerekend met <b class="num">${pct1(e)*100}%</b> en uurloon <b class="num">€ ${ul.v}</b> (vast forfait, RVO heeft nog geen loongegevens).`;
+  });
+  document.getElementById("outputs").innerHTML=S.ents.map(e=>{
+    const r=calc(e);tMax+=r.max;tH+=r.H;
+    const verdeling=r.verdeling.map(v=>`<div class="row dim"><span>${esc(v.n)}</span><span>${nf(v.h)} u · ${nf(v.h/p.weken,1)} u/wk</span></div>`).join("");
+    return `<article class="panel out">
+      <div class="out-head"><span class="out-name">${esc(e.name)}</span><span class="pill good">${pct1(e)*100}% · € ${r.ul}/uur</span></div>
+      <div class="big"><div class="l">Maximale teruggave per jaar</div><div class="v">${eur(r.max)}</div><div class="l">${eur(r.max/12)} per maand</div></div>
+      <div class="rows">
+        <div class="row strong"><span>Maximaal S&amp;O-uren per jaar</span><span>${nf(r.H)} u</span></div>
+        ${verdeling}
+      </div>
+      <div class="rows">
+        <div class="row"><span>S&amp;O-loon (${nf(r.H)} u × € ${r.ul})</span><span>${eur(r.loon)}</span></div>
+        <div class="row"><span>Kostenforfait</span><span>${eur(r.forf)}</span></div>
+        <div class="row strong"><span>S&amp;O-grondslag</span><span>${eur(r.G)}</span></div>
+        <div class="row dim"><span>× ${pct1(e)*100}% (1e schijf)</span><span>${eur(r.max)}</span></div>
+      </div>
+    </article>`}).join("");
+  const nSO=S.ents.reduce((s,e)=>s+e.so.length,0);
+  document.getElementById("in-summary").textContent=`${S.ents.length} ${S.ents.length===1?"entiteit":"entiteiten"} · ${nSO} S&O-medewerkers`;
+  document.getElementById("ent-count").textContent=S.ents.length+(S.ents.length===1?" entiteit":" entiteiten");
+  document.getElementById("t-max").textContent=eur(tMax);
+  document.getElementById("t-afdr").textContent=eur(tMax/12);
+  document.getElementById("t-uren").textContent=nf(tH)+" u/jr";
+  save();
+}
+document.addEventListener("input",ev=>{
+  const t=ev.target,d=t.dataset;
+  if(d.param){S.params[d.param]=num(t.value);update();return}
+  if(d.e===undefined)return;const e=S.ents[+d.e];
+  if(d.n)e.nso[d.n]=num(t.value);
+  else if(d.p!==undefined)e.so[+d.p][d.k]=d.k==="n"?t.value:num(t.value);
+  else if(d.k==="name")e.name=t.value;
+  else if(d.k==="techno")e.techno=t.checked;
+  else if(d.k==="sit"){const s=SITS[+t.value];e.techno=s.techno;e.vorig=s.vorig}
+  update();
+});
+document.addEventListener("click",ev=>{
+  const b=ev.target.closest("button");if(!b)return;const d=b.dataset;
+  if(d.go){const st=STEPS.find(x=>x.k===d.go);if(st&&st.h)location.hash=st.h;else{history.replaceState(null,"",location.pathname+location.search);show("in")}return}
+  const msg=t=>{const m=document.getElementById("reset-msg");m.textContent=t;m.hidden=false;setTimeout(()=>m.hidden=true,2500)};
+  if(d.addP!==undefined){const e=S.ents[+d.addP];e.so.push({n:"S&O-medewerker "+(e.so.length+1),cu:40,sal:0,bij:0,lh:0})}
+  else if(d.delP){const[e,p]=d.delP.split(":").map(Number);S.ents[e].so.splice(p,1)}
+  else if(d.delE!==undefined)S.ents.splice(+d.delE,1);
+  else if(d.dupE!==undefined){const c=structuredClone(S.ents[+d.dupE]);c.id=Math.random().toString(36).slice(2,9);c.name+=" (kopie)";S.ents.splice(+d.dupE+1,0,c)}
+  else if(b.id==="add-ent"||b.id==="add-ent2"){S.ents.push(newEnt("Entiteit "+(S.ents.length+1)+" B.V."));buildInputs();update();
+    const last=document.getElementById("e"+(S.ents.length-1)+"name");last.scrollIntoView({behavior:"smooth",block:"center"});last.select();return}
+  else if(b.id==="clear"){S={params:{...BASE_PARAMS},ents:[newEnt("Entiteit 1 B.V.")],projects:[],apps:{}};if(window.buildProjects)setTimeout(buildProjects);buildParams();msg("Alle invoer gewist.")}
+  else if(b.id==="reset"){S=structuredClone(EXAMPLE);S.projects=[];S.apps={};if(window.buildProjects)setTimeout(buildProjects);buildParams();msg("Voorbeeld geladen.")}
+  else return;
+  buildInputs();update();
+});
+const STEPS=[
+ {k:"in",h:"",l:"Invoer"},{k:"out",h:"besparing",l:"Besparing"},{k:"proj",h:"projecten",l:"Projectvragen & informatie"},
+ {k:"vv",h:"vormvrij",l:"Vormvrij indienen"},{k:"km",h:"ketenmachtiging",l:"Ketenmachtiging"},{k:"app",h:"aanvraag",l:"Inhoud afronden"},
+ {k:"va",h:"aanvullen",l:"Volledig aanvullen"},{k:"mon",h:"monitoring",l:"RVO-monitoring"},{k:"bes",h:"besluit",l:"Besluit"}];
+document.getElementById("stepsnav").innerHTML=STEPS.map((x,i)=>(i?'<span class="sep" aria-hidden="true"></span>':'')+`<button type="button" class="stp" id="nav-${x.k}" data-go="${x.k}"><span>${i+1}</span>${x.l.replace("&","&amp;")}</button>`).join("");
+function show(s){
+  STEPS.forEach(x=>{const sc=document.getElementById("scr-"+x.k);if(sc)sc.hidden=x.k!==s;document.getElementById("nav-"+x.k).classList.toggle("on",x.k===s)});
+  window.scrollTo({top:0});
+}
+const route=()=>{const st=STEPS.find(x=>x.h&&"#"+x.h===location.hash);show(st?st.k:"in")};
+window.addEventListener("hashchange",route);
+buildParams();buildInputs();update();
+</script>
+<script>
+/* ===== Stap 3: S&O-projecten (toets + aanvraagtekst) ===== */
+const uid=()=>Math.random().toString(36).slice(2,9);
+const TYPES={prog:"Ontwikkelingsproject: programmatuur",prod:"Ontwikkelingsproject: product of productieproces",two:"Technisch-wetenschappelijk onderzoek"};
+const QS=[
+ {k:"eigen",term:"Eigen ontwikkeling",types:["prog","prod"],ko:true,
+  q:"Ontwikkelen jullie de oplossing zelf, in plaats van een bestaand pakket toe te passen, te configureren of te koppelen?",
+  ph:"Wat bouwen jullie zelf?",why:"RVO: toepassen, samenstellen of implementeren van bestaande programmatuur is geen S&O."},
+ {k:"verklaring",term:"Technisch onderzoek",types:["two"],ko:true,
+  q:"Zoek je een verklaring voor een technisch verschijnsel die niet in bestaande kennis te vinden is?",
+  ph:"Welk verschijnsel wil je verklaren?",why:"RVO: technisch-wetenschappelijk onderzoek zoekt een verklaring die niet met algemeen beschikbare kennis te vinden is."},
+ {k:"nieuw",term:"Technisch nieuw",types:["prog","prod","two"],ko:true,
+  q:"Is het technisch nieuw voor jullie, en lossen gangbare aanpakken of bestaande tools het niet op?",
+  ph:"Waarom werkt de gangbare aanpak niet?",why:"RVO: technisch nieuw voor de aanvrager. Arnoud: onderbouwen ten opzichte van gangbare aanpakken."},
+ {k:"knelpunt",term:"Technisch knelpunt",types:["prog","prod"],ko:true,
+  q:"Is er een technisch probleem onder de motorkap, dus geen functionele wens als 'schaalbaar' of 'gebruiksvriendelijk'?",
+  ph:"Welk technisch probleem moeten jullie oplossen?",why:"RVO: je loopt aan tegen een technisch knelpunt. Arnoud: motorkap-IT-problemen, geen functionele eisen."},
+ {k:"technisch",term:"Technisch van aard",types:["two"],ko:true,
+  q:"Is het onderzoek technisch van aard (niet economisch of sociaal) en meer dan gegevens verzamelen of inventariseren?",
+  ph:"Wat onderzoek je technisch?",why:"RVO: economisch, sociaal of inventariserend onderzoek is geen S&O."},
+ {k:"onzeker",term:"Technische onzekerheid",types:["prog","prod","two"],ko:true,
+  q:"Is er een reële kans dat het technisch mislukt? (100% kans van slagen = geen S&O)",
+  ph:"Wat kan er technisch misgaan, en waarom weet je dat vooraf niet?",why:"RVO: er moeten technische risico's of onzekerheden zijn. Een project met 100% kans van slagen valt niet onder S&O."},
+ {k:"bewijs",term:"Werkingsprincipe en stopcriterium",types:["prog","prod","two"],ko:false,
+  q:"Kun je met een test, prototype of meting aantonen dat het werkt, met een meetbaar stopcriterium?",
+  ph:"Hoe test je het en wanneer is het klaar?",why:"RVO: je toont zelf aan hoe de oplossing werkt. Arnoud: per knelpunt een toetsbaar stopcriterium."},
+ {k:"plan",term:"Planmatig en vooraf",types:["prog","prod","two"],ko:true,
+  q:"Is het werk gepland in fasen, en start het pas na het indienen van de aanvraag?",
+  ph:"Welke fasen of werkpakketten?",why:"RVO: S&O wordt planmatig aangepakt en je vraagt alleen aan voor toekomstig werk."}
+];
+const LINT=[
+ {re:/\b(schaalbaar|schaalbaarheid|modulair|gebruiksvriendelijk|auditbaar|flexibel|user[- ]?friendly|intuïtief)\b/i,msg:"functionele eis (schaalbaar, modulair, gebruiksvriendelijk…): beschrijf het technische probleem eronder"},
+ {re:/\b(implementeren|implementatie van|integreren|configureren|inrichten|installeren)\b/i,msg:"woorden als implementeren, integreren of configureren: RVO leest dit als toepassen, niet als eigen ontwikkeling"},
+ {re:/\b(onder meer|onder andere|o\.a\.|etc\.?|enzovoort|e\.d\.)/i,msg:"vage woorden (onder andere, etc.): RVO vraagt concreet te zijn"},
+ {re:/\b(zeker|gegarandeerd|zonder risico|risicoloos|bewezen techniek)\b/i,msg:"tekst presenteert succes als zeker; S&O vraagt juist technische onzekerheid"},
+ {re:/\[aanvullen[^\]]*\]/i,msg:"er staan nog [aanvullen]-plekken in de tekst"}
+];
+const letter=i=>String.fromCharCode(65+(i%26))+(i>=26?Math.floor(i/26):"");
+const qsFor=p=>QS.filter(q=>q.types.includes(p.type));
+function migrate(p){
+  p.qn=p.qn||{};p.q=p.q||{};
+  if(p.omschrijving===undefined){
+    const parts=[];
+    if(p.samenvatting)parts.push(p.samenvatting);
+    if(p.resultaat)parts.push("Beoogd resultaat: "+p.resultaat);
+    (p.tks||[]).forEach(t=>{if(t.t)parts.push("Knelpunt: "+t.t+(t.m?" (klaar als: "+t.m+")":""))});
+    (p.ors||[]).forEach(o=>{if(o)parts.push("Aanpak: "+o)});
+    if(p.werking)parts.push("Werkingsprincipe: "+p.werking);
+    if(p.validatie)parts.push("Validatie: "+p.validatie);
+    if(p.risicos)parts.push("Risico's: "+p.risicos);
+    p.omschrijving=parts.join("\n");
+  }
+  ["omgeving","buiten","aanvraag","start","partners","update","zwaartepunt","num","einde","resultaatIn","orIn","kostenOms","uitgavenOms"].forEach(k=>{if(p[k]===undefined)p[k]=""});if(p.medeProg===undefined)p.medeProg=false;if(!Array.isArray(p.mdw))p.mdw=[];
+  if(!Array.isArray(p.planning)||!p.planning.length)p.planning=[{wp:"",datum:"",uren:0}];
+  return p;
+}
+function ensure(){S.ents.forEach(e=>{if(!e.id)e.id=uid()});if(!Array.isArray(S.projects))S.projects=[];S.projects.forEach(migrate)}
+ensure();
+function newProject(entId){return migrate({id:uid(),entId:entId||(S.ents[0]&&S.ents[0].id)||"",title:"",type:"prog",uren:0,q:{},qn:{},omschrijving:"",omgeving:"",buiten:"",aanvraag:"",planning:[{wp:"",datum:"",uren:0}],open:true})}
+const getP=id=>S.projects.find(p=>p.id===id);
+const entName=id=>{const e=S.ents.find(x=>x.id===id);return e?e.name:"(entiteit verwijderd)"};
+const projCode=p=>letter(S.projects.indexOf(p));
+
+function assess(p){
+  const qs=qsFor(p),fails=[],warns=[],missing=[];let answered=0;
+  qs.forEach(q=>{const a=p.q[q.k];if(!a)return;answered++;
+    if(a==="nee")(q.ko?fails:warns).push(q.term+": "+q.why);
+    else if(a==="twijfel")warns.push(q.term+": twijfel. "+q.why);
+    else if(!(p.qn[q.k]||"").trim())missing.push("toelichting bij '"+q.term+"'")});
+  if(!p.title.trim())missing.unshift("projecttitel");
+  if(!p.omschrijving.trim())missing.push("projectomschrijving in eigen woorden");
+  if(!(p.resultaatIn||"").trim())missing.push("beoogd technisch eindresultaat");
+  if(!(p.orIn||"").trim())missing.push("technische oplossingsrichtingen");
+  if(!p.start||!p.einde)missing.push("start- en einddatum project");
+  if(!(p.mdw||[]).length)missing.push("betrokken technische medewerkers");
+  if(!(num(p.uren)>0))missing.push("verwachte S&O-uren");
+  let cls,label;
+  if(fails.length){cls="v-red";label="Waarschijnlijk geen S&O"}
+  else if(answered<qs.length){cls="v-grey";label="Toets "+answered+"/"+qs.length}
+  else if(warns.length){cls="v-amber";label="Twijfelachtig, aanscherpen"}
+  else if(missing.length){cls="v-amber";label="Kansrijk, toelichting aanvullen"}
+  else {cls="v-green";label="Kansrijk als S&O"}
+  return {cls,label,fails,warns,missing};
+}
+function lintList(txt){return LINT.filter(l=>l.re.test(txt||"")).map(l=>l.msg)}
+
+function promptFor(p){
+  const c=projCode(p),wps=p.planning.filter(w=>w.wp.trim());
+  const toets=qsFor(p).map(q=>`- ${q.term}: ${p.q[q.k]||"niet beantwoord"}${(p.qn[q.k]||"").trim()?" — toelichting: "+p.qn[q.k].trim():""}`).join("\n");
+  return `Je bent een ervaren WBSO-adviseur. Schrijf de projectbeschrijving voor een WBSO-aanvraag bij RVO (Nederland), op basis van de gegevens hieronder. Schrijf in het Nederlands, zakelijk en concreet, in de wij-vorm van de aanvrager.
+
+GEGEVENS
+Projectcode: ${c}
+Projecttitel: ${p.title||"(geen titel)"}
+Projecttype: ${TYPES[p.type]}
+Aanvrager (entiteit): ${entName(p.entId)}
+Geplande S&O-uren: ${num(p.uren)||"onbekend"}
+
+S&O-toets (antwoord + toelichting van de aanvrager):
+${toets}
+
+Projectomschrijving in eigen woorden:
+${p.omschrijving.trim()||"(niet ingevuld)"}
+${p.type==="prog"?`\nProgrammeertalen / ontwikkelomgeving: ${p.omgeving.trim()||"(niet ingevuld)"}`:""}
+Buiten S&O (afbakening): ${p.buiten.trim()||"(niet ingevuld)"}
+Werkpakketten: ${wps.length?wps.map((w,i)=>`${c}${i+1} ${w.wp.trim()}${w.datum?", gereed "+w.datum.split("-").reverse().join("-"):""}${num(w.uren)?", "+num(w.uren)+" uur":""}`).join("; "):"(niet ingevuld)"}
+
+REGELS (RVO-handleiding WBSO en checklist van de WBSO-adviseur)
+1. Verwerk de S&O-criteria uit de toets expliciet in de tekst, met deze begrippen: "technisch nieuw voor de aanvrager" (en waarom gangbare aanpakken tekortschieten), "technisch knelpunt", "technische onzekerheid", "eigen ontwikkeling", "werkingsprincipe" en "stopcriterium".
+2. Technische knelpunten zijn problemen onder de motorkap, nooit functionele eisen zoals schaalbaar, modulair, gebruiksvriendelijk of auditbaar. Geef per knelpunt de technische onzekerheid en een toetsbaar stopcriterium of meetwaarde.
+3. Oplossingsrichtingen beschrijven eigen ontwikkeling of onderzoek ("Ontwikkeling van…", "Onderzoek naar…"); gebruik niet de woorden implementeren, integreren, configureren of inrichten.
+4. Noem geen routinematige ontwikkeling, standaard functionaliteit, uitrol, beheer of UX/UI als S&O; die horen onder "Buiten S&O".
+5. Vermijd vage woorden: "onder meer", "onder andere", "etc.", "zo". Geen marketingtaal.
+6. Gebruik alleen feiten uit de gegevens. Verzin geen cijfers, namen of resultaten. Ontbreekt iets, schrijf dan [aanvullen: wat er nodig is].
+7. Is een criterium in de toets met "nee" of "twijfel" beantwoord, begin de tekst dan met één regel "LET OP: …" die zegt wat RVO hier waarschijnlijk afkeurt.
+8. Platte tekst, geen Markdown (geen #, **, tabellen). Maximaal ongeveer 650 woorden.
+
+GEBRUIK PRECIES DEZE OPBOUW
+Projecttitel: …
+Projecttype: ${TYPES[p.type]}
+
+Projectomschrijving
+(3 tot 5 zinnen: wat de aanvrager zelf ontwikkelt, waarom dit technisch nieuw is voor de aanvrager en waarom gangbare aanpakken tekortschieten.)
+Beoogd technisch resultaat: …
+
+${p.type==="two"?"Onderzoeksvragen en technische problemen":"Verwachte technische problemen"}
+TK 1: … Technische onzekerheid: … Stopcriterium: …
+(2 tot 4 knelpunten)
+
+${p.type==="two"?"Onderzoeksopzet":"Oplossingsrichtingen (eigen ontwikkeling)"}
+OR 1: …
+(één per knelpunt)
+${p.type==="prog"?"\nProgrammeertalen / ontwikkelomgevingen\n…\n":""}
+Technische nieuwheid
+• Werkingsprincipe: …
+• Validatie: … (met stopcriterium)
+Risico's en onzekerheden:
+• …
+
+Projectplanning
+${c}1 … – gereed dd-mm-jjjj – … uur
+
+Buiten S&O (afbakening)
+…`;
+}
+function templateText(p){
+  const c=projCode(p),L=[],n=k=>(p.qn[k]||"").trim();
+  L.push("Projecttitel: "+(p.title||"[aanvullen: titel]"));L.push("Projecttype: "+TYPES[p.type]);L.push("");
+  L.push("Projectomschrijving");L.push(p.omschrijving.trim()||"[aanvullen: omschrijving]");
+  if(n("eigen"))L.push("Eigen ontwikkeling: "+n("eigen"));
+  if(n("nieuw"))L.push("Dit is technisch nieuw voor de aanvrager omdat "+n("nieuw"));
+  L.push("Beoogd technisch resultaat: [aanvullen]");L.push("");
+  L.push(p.type==="two"?"Onderzoeksvragen en technische problemen":"Verwachte technische problemen");
+  L.push("TK 1: "+(n("knelpunt")||n("verklaring")||"[aanvullen: technisch knelpunt]")+" Technische onzekerheid: "+(n("onzeker")||"[aanvullen]")+" Stopcriterium: "+(n("bewijs")||"[aanvullen]"));L.push("");
+  L.push(p.type==="two"?"Onderzoeksopzet":"Oplossingsrichtingen (eigen ontwikkeling)");L.push("OR 1: [aanvullen: Ontwikkeling van …]");
+  if(p.type==="prog"){L.push("");L.push("Programmeertalen / ontwikkelomgevingen");L.push(p.omgeving.trim()||"[aanvullen]")}
+  L.push("");L.push("Technische nieuwheid");L.push("• Werkingsprincipe: [aanvullen]");L.push("• Validatie: "+(n("bewijs")||"[aanvullen]"));L.push("Risico's en onzekerheden:");L.push("• "+(n("onzeker")||"[aanvullen]"));
+  const wps=p.planning.filter(w=>w.wp.trim());L.push("");L.push("Projectplanning");
+  if(wps.length)wps.forEach((w,i)=>L.push(`${c}${i+1} ${w.wp.trim()}${w.datum?" – gereed "+w.datum.split("-").reverse().join("-"):""}${num(w.uren)?" – "+nf(num(w.uren))+" uur":""}`));else L.push("[aanvullen]");
+  L.push("");L.push("Buiten S&O (afbakening)");L.push(p.buiten.trim()||"[aanvullen]");
+  return L.join("\n");
+}
+
+/* Buiten Claude (eigen hosting): Claude via /api/generate van de eigen Worker */
+const apiSample=async(prompt,opts={})=>{let r;
+  try{r=await fetch("/api/generate",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({prompt}),signal:opts.signal})}
+  catch(e){throw {code:e&&e.name==="AbortError"?"cancelled":"upstream_error"}}
+  if(r.status===401){throw {code:"session_expired"}}
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw {code:j.code||"upstream_error",message:j.error||""};
+  if(opts.onText)opts.onText({text:j.text,delta:j.text});return {text:j.text,truncated:!!j.truncated}};
+apiSample.json=async(p,o)=>{const {text}=await apiSample(p,o);const t=String(text||"").trim();
+  const tries=[t,(t.match(/```(?:json)?\s*([\s\S]*?)```/)||[])[1],t.slice(t.indexOf("{"),t.lastIndexOf("}")+1)];
+  for(const x of tries){if(!x)continue;try{return JSON.parse(x)}catch(e){}}throw {code:"invalid_json",text:t}};
+let SAMPLE=null;const GEN={};
+(async()=>{try{SAMPLE=window.claude&&window.claude.use?await window.claude.use("sample"):(location.protocol.startsWith("http")?apiSample:null)}catch(e){SAMPLE=null}
+  document.querySelectorAll("[data-gen]").forEach(b=>setGenUi(b.dataset.gen))})();
+
+function segHtml(pid,k,val){
+  return `<span class="seg" role="group">${["ja","nee","twijfel"].map(o=>`<button type="button" class="${o}${val===o?" on":""}" data-pq="${pid}:${k}:${o}" aria-pressed="${val===o}">${o[0].toUpperCase()+o.slice(1)}</button>`).join("")}</span>`;
+}
+function projectHtml(p){
+  const c=projCode(p);
+  const entOpts=S.ents.map(e=>`<option value="${e.id}" ${e.id===p.entId?"selected":""}>${esc(e.name)}</option>`).join("")+(S.ents.some(e=>e.id===p.entId)?"":`<option value="${p.entId}" selected>(entiteit verwijderd)</option>`);
+  return `<article class="panel proj" id="proj-${p.id}">
+   <div class="proj-head" data-ptoggle="${p.id}">
+     <span class="code">${c}</span><span class="t" id="pt-${p.id}">${esc(p.title)||"Nieuw project"}</span>
+     <span class="meta" id="pm-${p.id}"></span><span class="pill" id="pv-${p.id}"></span><span class="meta">${p.open?"▲":"▼"}</span>
+   </div>
+   ${p.open?`<div class="proj-body">
+    <div class="blk"><h4>1. Basis</h4>
+     <div class="basis-grid">
+      <div class="fld wide"><label for="pj-${p.id}-title">Projecttitel</label><input class="f" type="text" id="pj-${p.id}-title" data-pj="${p.id}" data-f="title" value="${esc(p.title)}" placeholder="Bijv. Deterministische trigger-engine voor weerdata"></div>
+      <div class="fld"><label for="pj-${p.id}-ent">Entiteit</label><select id="pj-${p.id}-ent" data-pj="${p.id}" data-f="entId">${entOpts}</select></div>
+      <div class="fld"><label for="pj-${p.id}-type">Projecttype</label><select id="pj-${p.id}-type" data-pj="${p.id}" data-f="type">${Object.entries(TYPES).map(([k,l])=>`<option value="${k}" ${k===p.type?"selected":""}>${l}</option>`).join("")}</select></div>
+      <div class="fld"><label for="pj-${p.id}-uren">Geplande S&amp;O-uren</label><input type="number" id="pj-${p.id}-uren" data-pj="${p.id}" data-f="uren" value="${p.uren}" min="0" step="10"></div>
+     </div>
+     <div class="formtag">RVO-formulier: <a href="${FORM_URL[p.type]}" target="_blank" rel="noopener">${FORM_NAME[p.type]}</a></div>
+     <div class="basis-grid">
+      <div class="fld"><label for="pj-${p.id}-num">Projectnummer</label><input class="f" type="text" maxlength="25" id="pj-${p.id}-num" data-pj="${p.id}" data-f="num" value="${esc(p.num||"")}" placeholder="${projCode(p)}"></div>
+      <div class="fld"><label for="pj-${p.id}-start">Start project</label><input type="date" id="pj-${p.id}-start" data-pj="${p.id}" data-f="start" value="${p.start||""}"></div>
+      ${p.type==="prod"?`<div class="fld"><label for="pj-${p.id}-zw">Zwaartepunt</label><select id="pj-${p.id}-zw" data-pj="${p.id}" data-f="zwaartepunt"><option value="PDT" ${p.zwaartepunt!=="PPS"?"selected":""}>Technisch nieuw product</option><option value="PPS" ${p.zwaartepunt==="PPS"?"selected":""}>Technisch nieuw productieproces</option></select></div>`:`<div class="fld"><label for="pj-${p.id}-einde">Einddatum project</label><input type="date" id="pj-${p.id}-einde" data-pj="${p.id}" data-f="einde" value="${p.einde||""}"></div>`}
+      ${p.type==="prod"?`<div class="fld"><label for="pj-${p.id}-einde">Einddatum project</label><input type="date" id="pj-${p.id}-einde" data-pj="${p.id}" data-f="einde" value="${p.einde||""}"></div>`:""}
+      <div class="fld wide"><label>Betrokken technische medewerkers</label><div class="mdw">${(()=>{const en=S.ents.find(x=>x.id===p.entId);const so=en?en.so:[];return so.length?so.map(m=>`<label class="chk"><input type="checkbox" data-pj="${p.id}" data-mdw="${esc(m.n)}" ${(p.mdw||[]).includes(m.n)?"checked":""}> ${esc(m.n)}</label>`).join(""):'<span class="hint">Geen S&amp;O-medewerkers bij deze entiteit (stap 1).</span>'})()}</div></div>
+      ${p.type==="prod"?`<div class="fld wide"><label for="pj-${p.id}-mp">Ontwikkelt u mede programmatuur?</label><select id="pj-${p.id}-mp" data-pj="${p.id}" data-f="medeProg" style="max-width:420px"><option value="" ${p.medeProg?"":"selected"}>Nee</option><option value="1" ${p.medeProg?"selected":""}>Ja, technisch nieuwe software</option></select></div>`:""}
+      <div class="fld wide"><label for="pj-${p.id}-partners">Samenwerking (partijen buiten de fiscale eenheid)</label><textarea id="pj-${p.id}-partners" data-pj="${p.id}" data-f="partners" style="min-height:64px" placeholder="Leeg = geen samenwerking. Eén partij per regel: naam – plaats – bijdrage (max. 80 tekens), max. 5 partijen. Bijv.: Spanjers Technologies B.V. – Amsterdam – Ontwikkeling voor eigen rekening en risico">${esc(p.partners||"")}</textarea></div>
+     </div>
+    </div>
+    <div class="blk"><h4>2. S&amp;O-toets</h4><p class="hint">Beantwoord de vragen en licht kort toe. De toelichting komt terug in de aanvraagtekst.</p>
+     <div class="qs">${qsFor(p).map(q=>`<div class="qrow2" id="qr-${p.id}-${q.k}">
+       <div class="qtop"><div><div class="qterm">${q.term}</div><div class="qq">${q.q}</div></div>${segHtml(p.id,q.k,p.q[q.k])}</div>
+       <input class="f qnote" type="text" data-pj="${p.id}" data-qn="${q.k}" value="${esc(p.qn[q.k]||"")}" placeholder="${esc(q.ph)}" aria-label="Toelichting ${esc(q.term)}">
+       <div class="qw" id="qw-${p.id}-${q.k}"></div></div>`).join("")}</div>
+     <div class="verdict" id="vd-${p.id}"></div>
+    </div>
+    <div class="blk"><h4>3. Projectomschrijving</h4><p class="hint">Schrijf in je eigen woorden wat jullie gaan doen, waar het technisch lastig wordt en hoe je het aanpakt. Opsommingen of steekwoorden zijn prima.</p>
+     <div class="pgrid2 two">
+      <div class="fld wide"><label for="pj-${p.id}-resultaatIn">Beoogd technisch eindresultaat</label><textarea id="pj-${p.id}-resultaatIn" data-pj="${p.id}" data-f="resultaatIn" style="min-height:64px" placeholder="Wat werkt er aan het eind dat nu technisch nog niet kan?">${esc(p.resultaatIn||"")}</textarea></div>
+      <div class="fld wide"><label for="pj-${p.id}-orIn">Technische oplossingsrichtingen die jullie onderzoeken</label><textarea id="pj-${p.id}-orIn" data-pj="${p.id}" data-f="orIn" style="min-height:64px" placeholder="Per knelpunt: wat gaan jullie zelf ontwikkelen of uitproberen? Steekwoorden zijn prima.">${esc(p.orIn||"")}</textarea></div>
+      <div class="fld wide"><label for="pj-${p.id}-omschrijving">Omschrijving in eigen woorden</label><textarea id="pj-${p.id}-omschrijving" data-pj="${p.id}" data-f="omschrijving" style="min-height:140px" placeholder="Bijv. We bouwen een engine die weerdata van verschillende bronnen omzet naar één formaat. Lastig: elke bron gebruikt andere tijdzones en rasters…">${esc(p.omschrijving)}</textarea></div>
+      ${p.type==="prog"||(p.type==="prod"&&p.medeProg)?`<div class="fld"><label for="pj-${p.id}-omgeving">Programmeertalen / ontwikkelomgeving</label><input class="f" type="text" id="pj-${p.id}-omgeving" data-pj="${p.id}" data-f="omgeving" value="${esc(p.omgeving)}" placeholder="Bijv. Python, PostgreSQL/PostGIS"></div>`:""}
+      <div class="fld"><label for="pj-${p.id}-buiten">Buiten S&amp;O (afbakening)</label><input class="f" type="text" id="pj-${p.id}-buiten" data-pj="${p.id}" data-f="buiten" value="${esc(p.buiten)}" placeholder="Bijv. API-koppelingen, uitrol, beheer, UX/UI"></div>
+      ${(()=>{const en=S.ents.find(x=>x.id===p.entId);return en&&appFor(en).regiem==="werkelijk"?`<div class="fld"><label for="pj-${p.id}-ko">Kosten (omschrijving, max. 500)</label><textarea id="pj-${p.id}-ko" data-pj="${p.id}" data-f="kostenOms" maxlength="500" style="min-height:64px" placeholder="Kostenpost, relatie met het project en bedrag">${esc(p.kostenOms||"")}</textarea></div>
+      <div class="fld"><label for="pj-${p.id}-kb">Totale kosten (€)</label><input type="number" id="pj-${p.id}-kb" data-pj="${p.id}" data-f="kostenBedrag" value="${p.kostenBedrag||0}" min="0" step="100"></div>
+      <div class="fld"><label for="pj-${p.id}-uo">Uitgaven (omschrijving, max. 500)</label><textarea id="pj-${p.id}-uo" data-pj="${p.id}" data-f="uitgavenOms" maxlength="500" style="min-height:64px" placeholder="Bedrijfsmiddel, relatie, % voor S&O en berekening">${esc(p.uitgavenOms||"")}</textarea></div>
+      <div class="fld"><label for="pj-${p.id}-ub">Totale uitgaven (€)</label><input type="number" id="pj-${p.id}-ub" data-pj="${p.id}" data-f="uitgavenBedrag" value="${p.uitgavenBedrag||0}" min="0" step="100"></div>`:`<div class="fld"><label>Kosten en uitgaven</label><span class="hint" style="padding-top:8px">Forfaitaire berekening (instelling per entiteit in stap 6). Hier niets invullen.</span></div>`})()}
+     </div>
+     <div class="fld"><label>Fasering werkzaamheden</label><span class="hint">Projectfasen met datum gereed (RVO: max. 10 regels, alleen eigen werkzaamheden).</span></div>
+     <div class="list">${p.planning.map((w,i)=>`<div class="wp"><input class="f" type="text" data-pj="${p.id}" data-wp="${i}" data-wf="wp" value="${esc(w.wp)}" placeholder="Werkpakket ${c}${i+1}" aria-label="Werkpakket"><input type="date" data-pj="${p.id}" data-wp="${i}" data-wf="datum" value="${w.datum}" aria-label="Datum gereed"><input type="number" data-pj="${p.id}" data-wp="${i}" data-wf="uren" value="${w.uren}" min="0" step="10" aria-label="Uren"><button class="x" type="button" data-pl="${p.id}:planning:${i}" aria-label="Werkpakket verwijderen">×</button></div>`).join("")}</div>
+     <div class="toolbar"><button class="btn sm" type="button" data-padd="${p.id}:planning" ${p.planning.length>=10?"disabled":""}>+ Fase</button><span class="hint" id="wpsum-${p.id}"></span></div>
+     <div class="fld"><label for="pj-${p.id}-update">Update project <span class="hint">(alleen bij een vervolgaanvraag)</span></label><textarea id="pj-${p.id}-update" data-pj="${p.id}" data-f="update" placeholder="Voortgang en wijzigingen t.o.v. de vorige aanvraag, met reden. Leeg bij een eerste aanvraag.">${esc(p.update||"")}</textarea></div>
+    </div>
+    <div class="toolbar" style="justify-content:space-between;background:var(--sunken);border-radius:10px;padding:10px 14px"><span class="hint" style="color:var(--fg)">De aanvraagtekst maak je in stap 6 (Inhoud afronden). Daar wordt dit project verwerkt volgens de schrijfregels van RVO en Arnoud.</span><button class="btn sm" type="button" data-go="app">Naar stap 6 →</button></div>
+    <div class="toolbar" style="justify-content:flex-end"><button class="btn sm" type="button" data-pdup="${p.id}">Project kopiëren</button><button class="btn sm" type="button" data-pdel="${p.id}" style="color:#9A2B1F">Project verwijderen</button></div>
+   </div>`:""}
+  </article>`;
+}
+function setGenUi(id){
+  const b=document.querySelector(`[data-gen="${id}"]`);if(!b)return;
+  const running=!!GEN[id];b.disabled=running;
+  b.textContent=running?"Bezig…":(SAMPLE?(getP(id)&&getP(id).aanvraag?"Opnieuw genereren":"Genereer aanvraagtekst"):"Maak conceptopzet");
+  const st=document.querySelector(`[data-gstop="${id}"]`);if(st)st.hidden=!running;
+}
+function buildProjects(){
+  ensure();const el=document.getElementById("projects");if(!el)return;
+  el.innerHTML=S.projects.length?S.projects.map(projectHtml).join(""):`<div class="panel empty">Nog geen projecten. Voeg het eerste project toe.</div>`;
+  S.projects.forEach(p=>{refreshProject(p);setGenUi(p.id)});uurenTable();
+}
+function refreshProject(p){
+  const a=assess(p);
+  const pill=document.getElementById("pv-"+p.id);if(pill){pill.className="pill "+a.cls;pill.textContent=a.label}
+  const pt=document.getElementById("pt-"+p.id);if(pt)pt.textContent=p.title||"Nieuw project";
+  const pm=document.getElementById("pm-"+p.id);if(pm)pm.textContent=entName(p.entId)+" · "+nf(num(p.uren))+" u";
+  if(!p.open)return;
+  qsFor(p).forEach(q=>{const r=document.getElementById(`qr-${p.id}-${q.k}`),w=document.getElementById(`qw-${p.id}-${q.k}`),v=p.q[q.k];
+    if(r){r.classList.toggle("bad",v==="nee"&&q.ko);r.classList.toggle("doubt",v==="twijfel"||(v==="nee"&&!q.ko))}
+    if(w)w.textContent=(v==="nee"||v==="twijfel")?q.why:""});
+  const vd=document.getElementById("vd-"+p.id);
+  if(vd){vd.className="verdict "+a.cls;const items=[...a.fails.map(x=>"Struikelblok: "+x),...a.warns,...(a.missing.length?["Nog invullen: "+a.missing.join(", ")+"."]:[])];
+    vd.innerHTML=`<div class="vh">${a.label}</div>`+(items.length?`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<div>Alle criteria zijn positief beantwoord en toegelicht. Genereer hieronder de aanvraagtekst.</div>`)}
+  const ws=p.planning.reduce((s,w)=>s+num(w.uren),0),ws2=document.getElementById("wpsum-"+p.id);
+  if(ws2)ws2.textContent=ws?`Werkpakketten samen ${nf(ws)} u`+(Math.round(ws)!==Math.round(num(p.uren))?` · wijkt af van geplande ${nf(num(p.uren))} u`:" · klopt met geplande uren"):"";
+  lintOut(p);
+}
+function lintOut(p){const al=document.getElementById("al-"+p.id);if(!al)return;
+  const l=p.aanvraag.trim()?lintList(p.aanvraag):[];
+  al.innerHTML=l.length?`<div class="lint">Tekstcheck: ${l.map(esc).join("; ")}.</div>`:(p.aanvraag.trim()?`<div class="hint" style="color:#2C5A29">Tekstcheck: geen functionele eisen, toepassingswoorden of vage woorden gevonden.</div>`:"")}
+function uurenTable(){if(window.renderDossiers)try{renderDossiers()}catch(x){}
+  const t=document.getElementById("uren-tbl");if(!t)return;
+  const rows=S.ents.map(e=>{const cap=calc(e).H,pr=S.projects.filter(p=>p.entId===e.id),u=pr.reduce((s,p)=>s+num(p.uren),0);
+    const st=!pr.length?"geen projecten":u>cap+0.5?`<span style="color:#9A2B1F;font-weight:600">${nf(u-cap)} u te veel</span>`:`<span style="color:#2C5A29">${nf(cap-u)} u ruimte</span>`;
+    return `<tr><td>${esc(e.name)}</td><td>${pr.length}</td><td>${nf(u)} u</td><td>${nf(cap)} u</td><td>${st}</td></tr>`}).join("");
+  t.innerHTML=`<thead><tr><th>Entiteit</th><th>Projecten</th><th>Uren in projecten</th><th>Max. S&amp;O-uren (stap 2)</th><th>Status</th></tr></thead><tbody>${rows}</tbody>`;
+}
+const ERR={not_granted:"Claude is niet toegestaan voor deze pagina.",sampling_disabled:"Claude is niet beschikbaar voor dit account.",rate_limited:"Even te veel verzoeken. Probeer het over een minuut opnieuw.",session_expired:"Log opnieuw in en probeer het nog eens.",refused:"Claude kon deze tekst niet maken. Pas de omschrijving aan.",empty_completion:"Er kwam geen tekst terug. Probeer het opnieuw."};
+async function generate(p){
+  const ta=document.getElementById("ag-"+p.id),gs=document.getElementById("gs-"+p.id);
+  if(!SAMPLE){p.aanvraag=templateText(p);ta.value=p.aanvraag;ta.style.minHeight="380px";save();lintOut(p);gs.textContent="Conceptopzet gemaakt (zonder AI). Vul de [aanvullen]-plekken in.";setGenUi(p.id);return}
+  const ctl=new AbortController();GEN[p.id]=ctl;setGenUi(p.id);gs.textContent="Claude schrijft de tekst…";ta.style.minHeight="380px";
+  const before=p.aanvraag;
+  try{
+    const {text,truncated}=await SAMPLE(promptFor(p),{signal:ctl.signal,cache:false,onText:({text})=>{ta.value=text}});
+    p.aanvraag=text.trim();ta.value=p.aanvraag;gs.textContent=truncated?"Tekst is afgekapt; maak de omschrijving korter.":"Klaar. Controleer de tekst en vul [aanvullen]-plekken in.";
+  }catch(e){
+    if(e&&e.code==="cancelled"){p.aanvraag=(e.text||before||"").trim();gs.textContent="Gestopt."}
+    else{p.aanvraag=(e&&e.text)?e.text.trim():before;gs.textContent=ERR[e&&e.code]||"Er ging iets mis. Probeer het opnieuw.";
+      if(e&&["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code))SAMPLE=null}
+    ta.value=p.aanvraag;
+  }finally{delete GEN[p.id];save();lintOut(p);setGenUi(p.id)}
+}
+document.addEventListener("input",ev=>{
+  const t=ev.target,d=t.dataset;if(!d.pj)return;const p=getP(d.pj);if(!p)return;
+  if(d.f){p[d.f]=(d.f==="uren"||d.f==="kostenBedrag"||d.f==="uitgavenBedrag")?num(t.value):d.f==="medeProg"?!!t.value:t.value;if(d.f==="type"){p.q={};p.gen=undefined;save();buildProjects();return}if(d.f==="medeProg"){save();buildProjects();return}}
+  else if(d.qn)p.qn[d.qn]=t.value;
+  else if(d.mdw!==undefined){p.mdw=p.mdw||[];p.mdw=t.checked?[...new Set([...p.mdw,d.mdw])]:p.mdw.filter(x=>x!==d.mdw)}
+  else if(d.wp!==undefined)p.planning[+d.wp][d.wf]=d.wf==="uren"?num(t.value):t.value;
+  save();if(d.f==="aanvraag")lintOut(p);else{refreshProject(p);uurenTable()}
+});
+document.addEventListener("click",ev=>{
+  const b=ev.target.closest("button,[data-ptoggle]");if(!b)return;const d=b.dataset;
+  if(d.pa==="add"){const p=newProject(S.ents[0]&&S.ents[0].id);S.projects.push(p);save();buildProjects();
+    const i=document.getElementById(`pj-${p.id}-title`);if(i){i.scrollIntoView({behavior:"smooth",block:"center"});i.focus()}return}
+  if(d.ptoggle){const p=getP(d.ptoggle);p.open=!p.open;save();buildProjects();return}
+  if(d.pq){const[id,k,o]=d.pq.split(":"),p=getP(id);p.q[k]=p.q[k]===o?undefined:o;save();
+    b.parentNode.querySelectorAll("button").forEach(x=>{const on=x.dataset.pq===d.pq&&p.q[k]===o;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});refreshProject(p);return}
+  if(d.padd){const[id,list]=d.padd.split(":"),p=getP(id);p[list].push({wp:"",datum:"",uren:0});save();buildProjects();return}
+  if(d.pl){const[id,list,i]=d.pl.split(":"),p=getP(id);p[list].splice(+i,1);if(!p[list].length)p[list].push({wp:"",datum:"",uren:0});save();buildProjects();return}
+  if(d.gen){const p=getP(d.gen);if(!GEN[p.id])generate(p);return}
+  if(d.gstop){GEN[d.gstop]&&GEN[d.gstop].abort();return}
+  if(d.pdel){const p=getP(d.pdel);if(b.dataset.armed){S.projects=S.projects.filter(x=>x!==p);save();buildProjects()}else{b.dataset.armed="1";b.textContent="Klik nogmaals om te verwijderen";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="Project verwijderen"}},3000)}return}
+  if(d.pdup){const p=getP(d.pdup),c=structuredClone(p);c.id=uid();c.title+=" (kopie)";S.projects.splice(S.projects.indexOf(p)+1,0,c);save();buildProjects();return}
+  if(d.pcopy){const p=getP(d.pcopy),m=document.getElementById("cp-"+p.id),ta=document.getElementById("ag-"+p.id);
+    const done=ok=>{m.textContent=ok?"Gekopieerd":"Tekst geselecteerd; kopieer met Ctrl/Cmd+C";setTimeout(()=>m.textContent="",3000)};
+    if(!p.aanvraag.trim()){m.textContent="Genereer eerst de tekst.";return}
+    try{navigator.clipboard.writeText(p.aanvraag).then(()=>done(true),()=>{ta.select();done(false)})}catch(e){ta.select();done(false)}return}
+});
+const _update=update;update=function(){_update();uurenTable();S.projects.forEach(p=>{const pm=document.getElementById("pm-"+p.id);if(pm)pm.textContent=entName(p.entId)+" · "+nf(num(p.uren))+" u"})};
+setTimeout(()=>{buildProjects();route()});
+</script>
+<script>
+/* ===== Stap 4: RVO-aanvraag. Schrijfregels RVO-handleiding WBSO + Arnoud Schipper (Finestri) ===== */
+const RULES={
+ criteria:[
+  ["Eigen ontwikkeling","De aanvrager ontwikkelt zelf technisch nieuwe programmatuur, een product of een productieproces. Toepassen, samenstellen, configureren of implementeren van bestaande programmatuur is geen S&O.","RVO §1.4.1"],
+  ["Technisch nieuw voor de aanvrager","De oplossing is technisch nieuw voor de aanvrager; de eigen kennis en vaardigheden zijn leidend. Onderbouw daarnaast waarom gangbare aanpakken tekortschieten (stand van de techniek).","RVO §1.4.1 · Arnoud"],
+  ["Technisch knelpunt","De aanvrager loopt aan tegen een technisch (programmeertechnisch) knelpunt onder de motorkap. Functionele eisen als schaalbaar, modulair, gebruiksvriendelijk of auditbaar zijn geen knelpunt.","RVO §1.4.1 · Arnoud"],
+  ["Technische onzekerheid (essentieel)","Er moet een reële kans zijn dat het technisch mislukt. Een project met 100% kans van slagen is geen S&O. Beschrijf per knelpunt expliciet wat technisch kan mislukken, waarom de uitkomst vooraf onzeker is en wat er gebeurt als de eerste aanpak niet werkt.","RVO §1.4.1 · Arnoud"],
+  ["Stopcriterium","Per knelpunt is er een toetsbaar stopcriterium of meetwaarde: wanneer is het opgelost.","Arnoud"],
+  ["Werkingsprincipe aantonen","De aanvrager toont zelf aan hoe de oplossing werkt (prototype, model, test). Het ontwikkelingsproject eindigt zodra het werkingsprincipe is aangetoond.","RVO §1.4.1"],
+  ["Formele programmeertaal","Programmatuur is vastgelegd in een formele programmeertaal; noem de programmeertalen en ontwikkelomgevingen.","RVO woordenlijst"],
+  ["Planmatig","Het S&O is planmatig opgezet, met fasen of werkpakketten en een datum gereed.","RVO §1.4"],
+  ["Zelf organiseren en uitvoeren","De aanvrager organiseert en voert het S&O zelf uit, ook bij samenwerking; benoem wat de aanvrager voor eigen rekening en risico doet.","RVO §1.2"],
+  ["Toekomstig en binnen de EU","Alleen toekomstige S&O-werkzaamheden, uitgevoerd binnen de EU.","RVO"],
+  ["Technisch-wetenschappelijk onderzoek","Bij TWO: een verklaring zoeken voor een technisch verschijnsel die niet met algemeen toegankelijke kennis te vinden is, systematisch en planmatig, met een onderzoeksopzet.","RVO §1.4.2"]
+ ],
+ checklist:[
+  "Knelpunten zijn motorkap-IT-problemen (geen functionele eisen zoals schaalbaar, modulair of auditbaar).",
+  "Per knelpunt is er technische onzekerheid en een toetsbaar stopcriterium of meetwaarde.",
+  "Er is een reële kans dat de aanpak technisch mislukt; projecten met 100% kans van slagen vallen niet onder S&O.",
+  "Oplossingsrichtingen beschrijven eigen ontwikkeling (niet implementeren, integreren of configureren).",
+  "Technische nieuwheid is onderbouwd ten opzichte van gangbare aanpakken (stand van de techniek), niet alleen 'nieuw voor ons'.",
+  "De afbakening S&O / niet-S&O is expliciet, zodat de urenadministratie zuiver is."
+ ],
+ nietSO:[
+  "Modellen, algoritmen of een architectuur alleen beschrijven",
+  "Programmatuur toepassen, samenstellen, configureren of implementeren",
+  "Nieuwe functionaliteit, modules of schermen bouwen met beschikbare technologie (routinematige ontwikkeling)",
+  "Standaard API-koppelingen, cloud-inrichting, uitrol, deployment, beheer, support en regulier onderhoud",
+  "UX/UI-ontwerp, functionele uitwerking en gebruikersacceptatietesten",
+  "Productierijp maken of opschalen na het bewezen werkingsprincipe",
+  "Werk met een vrijwel zekere uitkomst: wat met bekende kennis gegarandeerd lukt (100% kans van slagen)",
+  "Economisch, sociaal of psychologisch onderzoek; gegevens verzamelen, inventariseren of classificeren",
+  "Commerciële en operationele activiteiten, marketing, beurzen en congressen"
+ ],
+ woorden:[
+  "Schrijf concreet en technisch; vermijd 'zo', 'onder meer', 'onder andere', 'etc.'.",
+  "Oplossingsrichtingen beginnen met 'Ontwikkeling van…' of 'Onderzoek naar…'.",
+  "Gebruik de vaste termen: technisch nieuw voor de aanvrager, technisch knelpunt, technische onzekerheid, eigen ontwikkeling, werkingsprincipe, stopcriterium.",
+  "Geen marketingtaal; geen verzonnen cijfers of resultaten.",
+  "Schrijf niet alsof het succes vaststaat: vermijd 'zeker', 'eenvoudig', 'gegarandeerd', 'zonder risico', 'bewezen techniek'. Benoem juist wat kan mislukken en welke alternatieve aanpak dan wordt onderzocht.",
+  "Noem bij 'Aanvrager neemt de volgende S&O-werkzaamheden voor zijn rekening' alleen technisch ontwerp, ontwikkeling van programmatuurcomponenten, algoritmiek en datastructuren, en technisch testen om het werkingsprincipe aan te tonen."
+ ],
+ opbouw:"Volg het RVO-projectformulier van het projecttype (v1.9). Ontwikkelingsproject programmatuur: projectomschrijving; 1 technische knelpunten programmatuur; 2 technische oplossingsrichtingen programmatuur; 3 programmeertalen, ontwikkelomgevingen en tools; 4 technische nieuwheid programmatuur. Fysiek product of productieproces: projectomschrijving; zwaartepunt; 1 technische knelpunten; 2 technische oplossingsrichtingen; 3 technische nieuwheid; plus de programmatuurvragen als er mede programmatuur wordt ontwikkeld. Technisch-wetenschappelijk onderzoek: projectomschrijving; 1 aanleiding; 2 onderzoeksvragen; 3 opzet en uitvoering; 4 beoogde uitkomsten; 5 technologiegebied. Altijd: samenwerking, start project, fasering werkzaamheden met datum gereed, uren, kosten/uitgaven (forfait). Knelpunten als TK 1, TK 2… met technische onzekerheid en stopcriterium; oplossingsrichtingen als OR 1, OR 2…; technische nieuwheid met werkingsprincipe, validatie en risico's. Tekenlimieten: omschrijving, knelpunten, oplossingsrichtingen en nieuwheid max. 2000; overige velden max. 1500."
+};
+if(!S.apps)S.apps={};
+const appFor=e=>S.apps[e.id]||(S.apps[e.id]={van:"2027-01",tot:"2027-12",type:"Nieuwe aanvraag"});
+const GEN4={};
+const D_STAGES=[["proj","Projectvragen & informatie"],["vv","Vormvrij indienen"],["km","Ketenmachtiging"],["app","Inhoud afronden"],["va","Volledig aanvullen"],["mon","RVO-monitoring"],["bes","Besluit"]];
+function dossierStatus(e){
+  const pr=S.projects.filter(p=>p.entId===e.id),st={};
+  if(!pr.length)st.proj=["idle","Nog geen projecten"];
+  else{const as=pr.map(assess);st.proj=as.every(a=>!a.missing.length&&(a.cls==="v-green"||a.cls==="v-amber"))&&!as.some(a=>a.cls==="v-red")?["done","Projectinformatie verzameld"]:["active","Informatie verzamelen"]}
+  if(!pr.length||!pr.some(p=>p.gen))st.app=["idle","Nog niet gestart"];
+  else st.app=pr.every(p=>p.gen&&checks4(p).every(c=>c[0]))?["done","Inhoudelijk gereed"]:["active","Aanvullen en aanscherpen"];
+  ["vv","km","va","mon","bes"].forEach(k=>st[k]=["idle","Nog in te richten"]);
+  return st;
+}
+function dossierBar(e){const st=dossierStatus(e);return `<div class="dbar">${D_STAGES.map(([k,l])=>`<div class="dst ${st[k][0]}" title="${l}: ${st[k][1]}"><b>${l}</b>${st[k][1]}</div>`).join("")}</div>`}
+function renderDossiers(){const el=document.getElementById("dossiers3");if(!el)return;el.innerHTML=S.ents.map(e=>`<div class="dos"><div class="dos-n">${esc(e.name)}</div>${dossierBar(e)}</div>`).join("")}
+const parsePartners=t=>(t||"").split(/\n+/).map(l=>l.trim()).filter(Boolean).slice(0,5).map(l=>{const x=l.split(/\s+[\u2013\u2014-]\s+|\s*\|\s*|;\s*/);return {naam:(x[0]||"").slice(0,60),plaats:(x[1]||"").slice(0,60),rol:(x.slice(2).join(" - ")||"").slice(0,80)}});
+const pnum=p=>((p.num||"").trim()||projCode(p)).slice(0,25);
+const FORM_URL={prog:"https://www.rvo.nl/sites/default/files/2026-10/Projectformulier_WBSO_ontwikkelingsproject%20programmatuur_v1.9.pdf",
+ prod:"https://www.rvo.nl/sites/default/files/2026-10/Projectformulier_WBSO_ontwikkelingsproject_fysiek_product_of_productieproces_v1.9.pdf",
+ two:"https://www.rvo.nl/sites/default/files/2026-10/Projectformulier_WBSO_technisch-wetenschappelijk_onderzoek_v1.9.pdf"};
+const FORM_NAME={prog:"Projectformulier WBSO ontwikkelingsproject programmatuur",prod:"Projectformulier WBSO ontwikkelingsproject fysiek product of productieproces",two:"Projectformulier WBSO technisch-wetenschappelijk onderzoek"};
+/* Velden per RVO-projectformulier (v1.9): [sleutel, vraag, max tekens, RVO-toelichting, rol] */
+const F_OMS=["omschrijving","Projectomschrijving",2000,"Beschrijf in eigen woorden wat je ontwikkelt (of onderzoekt) en wat het doel is. Niet verwijzen naar eerdere aanvragen of bijlagen.","oms"];
+const FORMS={
+ prog:[F_OMS,
+  ["knelpunten","1. Technische knelpunten programmatuur",2000,"Concrete technische problemen op het gebied van IT die je zelf moet oplossen. Geen aanleidingen, randvoorwaarden of functionele eisen. Beschrijf verwachte problemen, risico's en onzekerheden.","tk"],
+  ["oplossingen","2. Technische oplossingsrichtingen programmatuur",2000,"Per knelpunt wat je zelf gaat onderzoeken, ontwikkelen en programmeren. Benadruk de techniek, niet de functionele eisen.","or"],
+  ["omgeving","3. Programmeertalen, ontwikkelomgevingen en tools",1500,"Talen, omgevingen en tools voor het ontwikkelen van technisch nieuwe software. Bestaande applicaties invoeren of implementeren telt niet.","env"],
+  ["nieuwheid","4. Technische nieuwheid programmatuur",1500,"Waarom de oplossingsrichtingen technisch nieuw zijn voor jou, en welke technische risico's en onzekerheden je verwacht. RVO toetst aan de stand van de technologie; gangbare technieken of bekende werkingsprincipes tellen niet.","nw"]],
+ prod:[F_OMS,
+  ["knelpunten","1. Technische knelpunten",2000,"Concrete technische knelpunten die je zelf moet oplossen en waarom ze de ontwikkeling technisch moeilijk maken. Geen aanleidingen, randvoorwaarden of functionele eisen.","tk"],
+  ["oplossingen","2. Technische oplossingsrichtingen",2000,"Per knelpunt wat je zelf gaat ontwikkelen. Richt je op de techniek, niet op de functionele eisen.","or"],
+  ["nieuwheid","3. Technische nieuwheid",2000,"Waarom de oplossingsrichtingen technisch nieuw zijn voor jou, met de technische risico's en onzekerheden. Gangbare technieken, bekende principes, kopiëren of reverse engineering tellen niet.","nw"]],
+ prodProg:[
+  ["knelpuntenProg","Technische knelpunten programmatuur",2000,"Concrete technische knelpunten bij het bouwen van de software. Geen wensen, randvoorwaarden of functionele eisen.","tk"],
+  ["oplossingenProg","Oplossingsrichtingen programmatuur",2000,"Per knelpunt wat je zelf gaat onderzoeken, ontwikkelen en programmeren.","or"],
+  ["omgeving","Programmeertalen, ontwikkelomgevingen en tools",1500,"Talen, omgevingen en tools voor technisch nieuwe software; bestaande applicaties configureren telt niet.","env"],
+  ["nieuwheidProg","Technische nieuwheid programmatuur",2000,"Waarom de software-oplossingsrichtingen technisch nieuw zijn, met risico's en onzekerheden.","nw"]],
+ two:[F_OMS,
+  ["aanleiding","1. Aanleiding",2000,"Het verschijnsel dat je wilt verklaren, en waarom dat niet met algemeen toegankelijke of bestaande eigen kennis kan.","tk"],
+  ["onderzoeksvragen","2. Onderzoeksvragen",2000,"Concrete onderzoeksvragen; meer dan gegevens verzamelen, observeren, vastleggen of correleren.","tk"],
+  ["opzet","3. Opzet en uitvoering",1500,"Praktische onderzoeksopzet en de technische werkzaamheden: systematisch, planmatig, niet-routinematig, gedocumenteerd en op feiten gebaseerd.","or"],
+  ["uitkomsten","4. Beoogde uitkomsten",1500,"De beoogde uitkomsten en waarom ze nieuwe technische kennis zijn voor jouw bedrijf.","nw"],
+  ["technologiegebied","5. Technologiegebied onderzoek",1500,"Het technologiegebied (bijv. natuurkunde, chemie, ICT). Economisch, sociaal of psychologisch onderzoek telt niet.","env"]]
+};
+const F_EXTRA=["buiten","Buiten S&O (afbakening, niet in het formulier; voor je urenadministratie)",1000,"Wat bewust niet als S&O wordt geregistreerd.","bu"];
+const fieldsFor=p=>[...FORMS[p.type],...(p.type==="prod"&&p.medeProg?FORMS.prodProg:[]),F_EXTRA];
+const roleTxt=(p,role)=>fieldsFor(p).filter(f=>f[4]===role).map(f=>(p.gen||{})[f[0]]||"").join("\n");
+function rulesText(){
+  return "S&O-CRITERIA\n"+RULES.criteria.map(c=>`- ${c[0]}: ${c[1]} (${c[2]})`).join("\n")+
+   "\n\nCHECKLIST VÓÓR INDIENING (Arnoud Schipper, Finestri)\n"+RULES.checklist.map(x=>"- "+x).join("\n")+
+   "\n\nGEEN S&O (hoort onder 'Buiten S&O')\n"+RULES.nietSO.map(x=>"- "+x).join("\n")+
+   "\n\nWOORDGEBRUIK\n"+RULES.woorden.map(x=>"- "+x).join("\n")+"\n\nOPBOUW\n"+RULES.opbouw;
+}
+function prompt4(p){
+  const c=projCode(p),e=S.ents.find(x=>x.id===p.entId),wps=p.planning.filter(w=>w.wp.trim()),fs=fieldsFor(p);
+  const toets=qsFor(p).map(q=>`- ${q.term}: ${p.q[q.k]||"niet beantwoord"}${(p.qn[q.k]||"").trim()?" — "+p.qn[q.k].trim():""}`).join("\n");
+  const two=p.type==="two";
+  return `Je bent een ervaren WBSO-adviseur. Vul het officiële RVO-formulier "${FORM_NAME[p.type]}" in voor het project hieronder, in de juiste bewoordingen. Houd je strikt aan de schrijfregels en aan de tekenlimiet per veld (blijf ruim eronder).
+
+${rulesText()}
+
+PROJECTGEGEVENS
+Projectnummer: ${pnum(p)}
+Titel: ${p.title||"(geen titel)"}
+Formulier: ${FORM_NAME[p.type]}${p.type==="prod"?`\nZwaartepunt: ${p.zwaartepunt==="PPS"?"Technisch nieuw productieproces":"Technisch nieuw product"}\nOntwikkelt de aanvrager mede programmatuur: ${p.medeProg?"ja":"nee"}`:""}
+Aanvrager: ${e?e.name:"onbekend"}
+S&O-uren: ${num(p.uren)||"onbekend"}
+Start project: ${p.start||"(niet ingevuld)"}
+Samenwerking: ${(p.partners||"").trim()||"geen"}
+S&O-toets (antwoord — toelichting):
+${toets}
+Omschrijving van de aanvrager:
+${p.omschrijving.trim()||"(niet ingevuld)"}
+Beoogd technisch eindresultaat: ${(p.resultaatIn||"").trim()||"(niet ingevuld)"}
+Technische oplossingsrichtingen volgens aanvrager: ${(p.orIn||"").trim()||"(niet ingevuld)"}
+Projectperiode: ${p.start||"?"} t/m ${p.einde||"?"}
+Betrokken technische medewerkers: ${(p.mdw||[]).join(", ")||"(niet ingevuld)"}
+${p.type!=="two"?`Programmeertalen/ontwikkelomgeving: ${p.omgeving.trim()||"(niet ingevuld)"}\n`:""}Buiten S&O volgens aanvrager: ${p.buiten.trim()||"(niet ingevuld)"}
+Fasering werkzaamheden: ${wps.length?wps.map((w,i)=>`${c}${i+1} ${w.wp.trim()}`).join("; "):"(niet ingevuld)"}
+
+TE VULLEN VELDEN (vraag — RVO-toelichting — max. tekens)
+${fs.map(f=>`- ${f[0]}: "${f[1]}" — ${f[3]} — max. ${f[2]} tekens`).join("\n")}
+
+VOORBEELD VAN DE GEWENSTE STIJL (uit een eerder ingediende aanvraag; volg toon, opbouw en interpunctie, niet de inhoud; schrijf "TK 1: " en "OR 1: " altijd met spatie)
+Projectomschrijving:
+Dit project gaat over de ontwikkeling van een ingestion- en normalisatielaag die heterogene weerbronnen (historisch/live/forecast) automatisch ophaalt, controleert en omzet naar een uniforme spatio-temporele datastructuur. Doel is dat downstream modellen en triggerbeoordelingen brononafhankelijk, deterministisch en reproduceerbaar kunnen werken.
+Het project kent meerdere technische knelpunten op verschillende gebieden. De oplossingen worden in eigen beheer ontwikkeld.
+Beoogd technisch resultaat:
+Een reproduceerbare pipeline die brondata normaliseert (tijd-as, ruimte-as, eenheden, resolutie, quality flags) en per dataset exact vastlegt welke interpretatie en transformaties zijn toegepast, zodat dezelfde input altijd dezelfde genormaliseerde output oplevert.
+Technische knelpunten:
+TK 1: Tijd-as interpretatie (tijdzone, tijdstap, aggregatie) is bronafhankelijk en kan zonder expliciete regels leiden tot niet-deterministische uitkomsten in latere triggerbeoordeling.
+TK 2: Ruimtelijke alignment (rasterprojectie, resolutie, resampling) is bronafhankelijk; foutmarges bij mapping naar punt/polygon zijn zonder eigen methodiek niet beheersbaar.
+Oplossingsrichtingen:
+OR 1: Ontwikkeling van een canoniek spatio-temporeel datamodel met expliciete normalisatieregels per bron (units, tijd-as, grid, quality flags) en een herleidbare transformatieketen.
+OR 2: Onderzoek naar meerdere alignmentstrategieën (resampling-varianten) met foutmarge-analyse en effectmeting op downstream triggeruitkomsten.
+Aanvrager neemt de volgende S&O-werkzaamheden voor zijn rekening:
+- Ontwikkelen van de programmatuur voor de data-ingestion pipeline;
+- Technisch testen van de werking, herleidbaarheid en reproduceerbaarheid.
+Technische nieuwheid:
+• Werkingsprincipe: dezelfde broninput (versie) wordt via een vaste, geregistreerde transformatieketen omgezet naar dezelfde genormaliseerde output (determinisme).
+• Validatie: replay op geselecteerde historische events per bron; herhaalde runs leveren identieke output (hash/versie); stopcriterium = stabiele resultaten binnen vooraf gedefinieerde foutmarges.
+Risico's en onzekerheid:
+• Onzekerheid of één uniform datamodel en één set normalisatieregels robuust werkt over meerdere bronnen, regio's en seizoenen.
+• Risico dat validatie- en outlierlogica te streng (false positives) of te zwak (false negatives) is.
+
+TAAL
+- Correct, zakelijk Nederlands met volledige zinnen; vakjargon in het Engels mag waar gangbaar (pipeline, backtesting).
+- Gebruik alleen gewone tekens: geen ⇒, →, ≥; schrijf "=", "->", ">=". Bullets met "•" of "-".
+- Geen herhaling van dezelfde zin in meerdere velden.
+
+OPDRACHT
+- Gebruik alleen feiten uit de projectgegevens; verzin geen cijfers, namen of resultaten. Ontbreekt iets, schrijf [aanvullen: wat er nodig is].
+- Verwerk in "omschrijving" ook het beoogde technische resultaat, zoals in het voorbeeld ("Beoogd technisch resultaat:" op een nieuwe regel).
+- Het veld "omgeving" noemt concreet de programmeertalen, frameworks/bibliotheken, databases en ontwikkeltools uit de gegevens, en zegt dat de programmatuur zelf wordt geschreven (geen invoer of implementatie van bestaande applicaties).
+${two?`- Onderzoeksvragen zijn concreet en gaan verder dan gegevens verzamelen. Beschrijf bij opzet hoe systematisch wordt getoetst en wanneer een onderzoeksvraag beantwoord is (stopcriterium).`:`- In de knelpuntvelden: nummer als "TK 1:", "TK 2:" (2 tot 4 knelpunten), elk met "Technische onzekerheid:" (wat kan technisch mislukken en waarom dat vooraf onzeker is) en "Stopcriterium:".
+- In de oplossingsvelden: nummer als "OR 1:", "OR 2:", één per knelpunt, beginnend met "Ontwikkeling van" of "Onderzoek naar". Sluit af met "Aanvrager neemt de volgende S&O-werkzaamheden voor zijn rekening:" en een korte opsomming.
+- In de nieuwheidvelden: waarom technisch nieuw voor de aanvrager t.o.v. gangbare aanpakken (stand van de techniek); het werkingsprincipe dat wordt aangetoond; de validatie met stopcriterium; en "Risico's en onzekerheden:" met per risico het alternatief als de eerste aanpak faalt.`}
+- ONZEKERHEID IS ESSENTIEEL: een project met 100% kans van slagen is geen S&O. Schrijf nergens alsof het resultaat vaststaat.
+- Is een criterium in de toets met nee of twijfel beantwoord, of blijkt geen echte technische onzekerheid, zet dan in "let_op" in één zin wat RVO hier waarschijnlijk afkeurt; anders een lege string.
+- Platte tekst, geen Markdown. Gebruik regeleinden tussen genummerde punten.
+
+Antwoord met alleen één JSON-object met precies deze sleutels (strings): ${[...fs.map(f=>'"'+f[0]+'"'),'"let_op"'].join(", ")}.`;
+}
+function fromJson(j,p){const g={};fieldsFor(p).forEach(f=>{let v=j[f[0]];if(Array.isArray(v))v=v.join("\n");g[f[0]]=String(v||"").trim()});g.let_op=String(j.let_op||"").trim();return g}
+function template4(p){
+  const n=k=>(p.qn[k]||"").trim(),A=x=>"[aanvullen: "+x+"]",g={};
+  g.omschrijving=(p.omschrijving.trim()||A("omschrijving"))+(n("nieuw")?" Dit is technisch nieuw voor de aanvrager omdat "+n("nieuw"):"")+" Beoogd technisch resultaat: "+((p.resultaatIn||"").trim()||A("resultaat"));
+  if(p.type==="two"){g.aanleiding=n("verklaring")||A("verschijnsel en waarom bestaande kennis tekortschiet");g.onderzoeksvragen=A("concrete onderzoeksvragen");
+    g.opzet=(n("plan")||A("onderzoeksopzet"))+" Stopcriterium: "+(n("bewijs")||A("wanneer is de vraag beantwoord"));g.uitkomsten=A("beoogde uitkomsten");g.technologiegebied=A("technologiegebied")}
+  else{const tk=`TK 1: ${n("knelpunt")||A("technisch knelpunt")}\nTechnische onzekerheid: ${n("onzeker")||A("wat kan mislukken")}\nStopcriterium: ${n("bewijs")||A("stopcriterium")}`;
+    const or=`OR 1: ${(p.orIn||"").trim()||"Ontwikkeling van "+(n("eigen")||A("eigen ontwikkeling"))}\nAanvrager neemt de volgende S&O-werkzaamheden voor zijn rekening:\n- Technisch ontwerp\n- Ontwikkeling van programmatuurcomponenten, algoritmiek en datastructuren\n- Technisch testen om het werkingsprincipe aan te tonen`;
+    const nw=`${n("nieuw")?"Technisch nieuw voor de aanvrager omdat "+n("nieuw"):A("waarom technisch nieuw t.o.v. gangbare aanpakken")}\nWerkingsprincipe: ${A("werkingsprincipe")}\nValidatie: ${n("bewijs")||A("validatie en stopcriterium")}\nRisico's en onzekerheden:\n- ${n("onzeker")||A("risico en alternatief")}`;
+    g.knelpunten=tk;g.oplossingen=or;g.nieuwheid=nw;if(p.type==="prog"||p.medeProg){g.omgeving=p.omgeving.trim()||A("talen en tools")}
+    if(p.type==="prod"&&p.medeProg){g.knelpuntenProg=A("knelpunten programmatuur");g.oplossingenProg=A("oplossingsrichtingen programmatuur");g.nieuwheidProg=A("technische nieuwheid programmatuur")}}
+  g.buiten=p.buiten.trim()||A("afbakening");g.let_op="";return g;
+}
+function migrateGen(p){const g=p.gen;if(!g||g.nieuwheid!==undefined||p.type==="two"&&g.aanleiding!==undefined)return;
+  if(g.resultaat&&!/Beoogd technisch resultaat/.test(g.omschrijving||""))g.omschrijving=(g.omschrijving||"")+"\nBeoogd technisch resultaat: "+g.resultaat;
+  if(g.werkzaamheden)g.oplossingen=(g.oplossingen||"")+"\nAanvrager neemt de volgende S&O-werkzaamheden voor zijn rekening:\n"+g.werkzaamheden;
+  g.nieuwheid=[g.werking?"Werkingsprincipe: "+g.werking:"",g.validatie?"Validatie: "+g.validatie:"",g.risicos?"Risico's en onzekerheden:\n"+g.risicos:""].filter(Boolean).join("\n");}
+const CERTAIN=/\b(zeker|gegarandeerd|garantie|zonder risico|risicoloos|eenvoudig|bewezen techniek|altijd werkt|100%)\b/i;
+function checks4(p){
+  const g=p.gen||{},all=fieldsFor(p).map(f=>g[f[0]]||"").join("\n"),two=p.type==="two",a=assess(p);
+  const tkT=roleTxt(p,"tk"),orT=roleTxt(p,"or"),nwT=roleTxt(p,"nw");
+  const over=fieldsFor(p).filter(f=>(g[f[0]]||"").length>f[2]);
+  const tkLines=tkT.split(/\n(?=TK\s*\d)/).filter(x=>/TK\s*\d/.test(x));
+  const cs=[[a.cls==="v-green","S&O-toets uit stap 3 is positief"+(a.cls==="v-green"?"":" ("+a.label.toLowerCase()+")")]];
+  if(two){
+    cs.push([!!(g.aanleiding||"").trim()&&/bestaande|algemeen|toegankelijk|bekend/i.test(g.aanleiding||""),"Aanleiding legt uit waarom bestaande kennis het verschijnsel niet verklaart"]);
+    cs.push([!!(g.onderzoeksvragen||"").trim()&&!/\b(inventaris|verzamelen|classificer)/i.test(g.onderzoeksvragen||""),"Onderzoeksvragen gaan verder dan gegevens verzamelen of inventariseren"]);
+    cs.push([/stopcriterium|beantwoord|toets/i.test(g.opzet||""),"Opzet is systematisch, met een criterium wanneer een vraag beantwoord is"]);
+    cs.push([!!(g.technologiegebied||"").trim()&&!/econom|sociaal|psycholog/i.test(g.technologiegebied||""),"Technologiegebied is technisch van aard"]);
+  }else{
+    cs.push([!!tkT.trim()&&!LINT[0].re.test(tkT),"Knelpunten zijn motorkap-problemen, geen functionele eisen"]);
+    cs.push([tkLines.length>0&&tkLines.every(l=>/onzekerheid/i.test(l)&&/stopcriterium|meetwaarde/i.test(l)),"Elk knelpunt heeft technische onzekerheid en een stopcriterium"]);
+    cs.push([!!orT.trim()&&!LINT[1].re.test(orT),"Oplossingsrichtingen beschrijven eigen ontwikkeling"]);
+    cs.push([/gangba|bestaande|stand van de techn|standaard/i.test(nwT+(g.omschrijving||"")),"Technische nieuwheid onderbouwd t.o.v. gangbare aanpakken"]);
+    if(p.type==="prog"||p.medeProg)cs.push([!!(g.omgeving||"").trim()&&!/\[aanvullen/i.test(g.omgeving||""),"Programmeertalen, ontwikkelomgevingen en tools genoemd"]);
+  }
+  cs.push([/risico|onzeker/i.test(nwT+tkT)&&!CERTAIN.test(all),"Reële kans op mislukken beschreven; geen tekst die succes als zeker presenteert"]);
+  cs.push([!!(g.buiten||"").trim()&&!/\[aanvullen/i.test(g.buiten||""),"Afbakening S&O / niet-S&O is expliciet"]);
+  cs.push([!!all.trim()&&!LINT[2].re.test(all),"Geen vage woorden (onder andere, etc.)"]);
+  cs.push([!!all.trim()&&!/\[aanvullen/i.test(all),"Geen open [aanvullen]-plekken"]);
+  cs.push([!over.length,over.length?"Tekenlimiet overschreden bij: "+over.map(f=>f[1]).join(", "):"Alle velden binnen de tekenlimiet van RVO"]);
+  cs.push([!!p.start&&p.planning.some(w=>w.wp.trim()&&w.datum),"Startdatum en fasering met datum gereed ingevuld"]);
+  return cs;
+}
+const fmtMonth=m=>{if(!m)return"";const[y,mm]=m.split("-");return mm+"-"+y};
+const fmtDate=d=>d?d.split("-").reverse().join("-"):"";
+function docText(e){
+  const ap=appFor(e),pr=S.projects.filter(p=>p.entId===e.id),r=calc(e),L=[];
+  L.push(`${e.name} – WBSO-aanvraag ${ap.van.slice(0,4)}`);L.push("");
+  L.push("Basisgegevens");L.push(`Periode: ${fmtMonth(ap.van)} t/m ${fmtMonth(ap.tot)}`);L.push(`Aanvraagtype: ${ap.type}`);
+  L.push(`Startersfaciliteit: ${e.techno?"ja":"nee"}`);L.push(`S&O-uurloon: € ${r.ul}${e.vorig?" (berekend)":" (forfaitair)"}`);
+  L.push("Regiemkeuze kosten/uitgaven: "+(ap.regiem==="werkelijk"?"werkelijke kosten en uitgaven":"forfaitaire berekening"));L.push(`Aantal werknemers S&O: ${e.so.length}`);L.push("");
+  pr.forEach(p=>{const c=projCode(p),g=p.gen||{};
+    L.push(`Project ${c} – ${p.title||"(zonder titel)"}`);L.push(`Formulier: ${FORM_NAME[p.type]}`);
+    if(p.type==="prod")L.push(`Zwaartepunt: ${p.zwaartepunt==="PPS"?"Technisch nieuw productieproces":"Technisch nieuw product"}`);
+    L.push(`Projectnummer: ${pnum(p)}`);L.push(`Uren: ${nf(num(p.uren))}`);L.push(`Start project: ${fmtDate(p.start)||"[aanvullen]"}`);
+    L.push(`Samenwerking: ${(p.partners||"").trim()?"ja\n"+p.partners.trim():"nee"}`);L.push("");
+    const wps=p.planning.filter(w=>w.wp.trim());L.push("Fasering werkzaamheden");wps.forEach((w,i)=>L.push(`${c}${i+1}  ${w.wp.trim()} – gereed ${fmtDate(w.datum)||"[aanvullen]"}`));L.push("");
+    if((p.update||"").trim()){L.push("Update project");L.push(p.update.trim());L.push("")}
+    fieldsFor(p).forEach(f=>{if(f[0]==="buiten")return;
+      if(f===FORMS.prodProg[0]){L.push("Ontwikkelt u mede programmatuur: ja");L.push("")}
+      L.push(f[1]);L.push(g[f[0]]||"");L.push("")});
+    if(p.type==="prod"&&!p.medeProg){L.push("Ontwikkelt u mede programmatuur: nee");L.push("")}
+    L.push("Kosten/uitgaven");if(ap.regiem==="werkelijk"){L.push("Kosten: "+(p.kostenOms||"")+" – totaal € "+nf(num(p.kostenBedrag)));L.push("Uitgaven: "+(p.uitgavenOms||"")+" – totaal € "+nf(num(p.uitgavenBedrag)))}else L.push("Er is gekozen voor een forfaitaire berekening.");L.push("");
+    if(g.buiten){L.push("(Intern) Buiten S&O");L.push(g.buiten);L.push("")}
+    L.push("—");L.push("")});
+  L.push(`Projectsamenvatting uren (${fmtMonth(ap.van)} – ${fmtMonth(ap.tot)})`);
+  pr.forEach(p=>L.push(`${projCode(p)}  ${p.title}  ${p.type==="two"?"TWO":p.type==="prog"?"O/Programmatuur":"O/Product of proces"}  ${nf(num(p.uren))}`));
+  L.push(`Totaal  ${nf(pr.reduce((s,p)=>s+num(p.uren),0))}`);
+  return L.join("\n");
+}
+function formView(p){
+  const g=p.gen||{},e=S.ents.find(x=>x.id===p.entId)||{},partners=parsePartners(p.partners),wps=p.planning.filter(w=>w.wp.trim()).slice(0,10);
+  const dmy=d=>d?d.split("-").reverse().join("-"):"";
+  const val=(v,ph)=>v&&String(v).trim()?`<div class="fv-val">${esc(v)}</div>`:`<div class="fv-val fv-empty">${ph||"Niet ingevuld"}</div>`;
+  const cnt=(v,lim)=>{const n=(v||"").length;return `<span class="fv-cnt${n>lim?" over":""}">${nf(n)} / ${nf(lim)} tekens</span>`};
+  const q=(f,i)=>`<div class="fv-q"><div class="fv-qh"><span class="fv-qt">${esc(f[1])}</span>${cnt(g[f[0]],f[2])}</div><div class="fv-help">${esc(f[3])}</div>${val(g[f[0]])}</div>`;
+  const spec=FORMS[p.type].slice(1);
+  const typeLabel=p.type==="prog"?"programmatuur":p.type==="prod"?"ontwikkeling fysiek product of productieproces":"technisch-wetenschappelijk onderzoek";
+  const sec=(t,body)=>`<section class="fv-sec"><h5>${t}</h5>${body}</section>`;
+  return `<div class="fv">
+   <div class="fv-top"><div><div class="fv-form">${esc(FORM_NAME[p.type])}</div><div class="fv-sub">Offline RVO-projectformulier v1.9 · ingelezen in de online aanvraag</div></div></div>
+   ${sec("Projectgegevens",`<dl class="fv-dl">
+     <dt>Bedrijfsnaam aanvrager</dt><dd>${esc(e.name||"")}</dd>
+     <dt>KvK-nummer</dt><dd>${e.kvk?esc(e.kvk):'<span class="fv-empty">Niet ingevuld</span>'}</dd>
+     <dt>Projectnummer <span class="fv-lim">(max. 25 tekens)</span></dt><dd>${esc(pnum(p))}</dd>
+     <dt>Projecttitel <span class="fv-lim">(max. 200 tekens)</span></dt><dd>${p.title?esc(p.title):'<span class="fv-empty">Niet ingevuld</span>'}</dd>
+     ${p.type==="prod"?`<dt>Zwaartepunt</dt><dd>${p.zwaartepunt==="PPS"?"Technisch nieuw productieproces":"Technisch nieuw product"}</dd>`:""}</dl>`)}
+   ${sec("Projectomschrijving",`<div class="fv-q"><div class="fv-qh"><span class="fv-qt">Omschrijf het project in eigen woorden</span>${cnt(g.omschrijving,2000)}</div>${val(g.omschrijving)}</div>`)}
+   ${sec("Samenwerking",`<div class="fv-line">Levert een of meer partijen (buiten uw fiscale eenheid) een bijdrage aan het project? <b>${partners.length?"Ja":"Nee"}</b></div>
+     ${partners.length?`<table class="fv-tbl"><thead><tr><th>Naam samenwerkingspartner</th><th>Vestigingsplaats</th><th>Bijdrage aan het project (max. 80 tekens)</th></tr></thead><tbody>${partners.map(r=>`<tr><td>${esc(r.naam)}</td><td>${esc(r.plaats)}</td><td>${esc(r.rol)}</td></tr>`).join("")}</tbody></table>`:""}`)}
+   ${sec("Start project",`<div class="fv-line">Het project is/wordt gestart op: <b>${p.start?dmy(p.start):'<span class="fv-empty">Niet ingevuld</span>'}</b></div>`)}
+   ${sec("Fasering werkzaamheden",wps.length?`<table class="fv-tbl"><thead><tr><th style="width:70%">Projectfase</th><th>Datum gereed</th></tr></thead><tbody>${wps.map(w=>`<tr><td>${esc(w.wp)}</td><td>${w.datum?dmy(w.datum):'<span class="fv-empty">–</span>'}</td></tr>`).join("")}</tbody></table>`:`<div class="fv-val fv-empty">Geen fasen ingevuld (stap 3)</div>`)}
+   ${sec("Update project",`<div class="fv-q"><div class="fv-qh"><span class="fv-qt">Voortgang en wijzigingen t.o.v. een eerdere aanvraag</span>${cnt(p.update,2000)}</div>${val(p.update,"Leeg (eerste aanvraag voor dit project)")}</div>`)}
+   ${sec("Specifieke vragen "+typeLabel,spec.map(q).join(""))}
+   ${p.type==="prod"?sec("Programmatuur",`<div class="fv-line">Ontwikkelt u mede programmatuur die technisch nieuw is? <b>${p.medeProg?"Ja":"Nee"}</b></div>${p.medeProg?FORMS.prodProg.map(q).join(""):""}`):""}
+   ${sec("Uren",`<div class="fv-line">Uren in de aanvraagperiode (medewerkers): <b>${nf(num(p.uren))}</b></div>`)}
+   ${sec("Kosten en uitgaven",appFor(e).regiem==="werkelijk"?`<div class="fv-q"><div class="fv-qh"><span class="fv-qt">Kosten</span><span class="fv-cnt">totaal € ${nf(num(p.kostenBedrag))}</span></div>${val(p.kostenOms)}</div><div class="fv-q"><div class="fv-qh"><span class="fv-qt">Uitgaven</span><span class="fv-cnt">totaal € ${nf(num(p.uitgavenBedrag))}</span></div>${val(p.uitgavenOms)}</div>`:`<div class="fv-line">Forfaitaire berekening: de velden voor kosten en uitgaven blijven leeg.</div>`)}
+   ${(g.buiten||"").trim()?`<div class="fv-intern"><b>Intern, niet in het formulier:</b> buiten S&amp;O — ${esc(g.buiten)}</div>`:""}
+  </div>`;
+}
+function proj4Html(p){
+  migrateGen(p);const c=projCode(p),a=assess(p),g=p.gen,fs=fieldsFor(p);
+  return `<div class="p4" id="p4-${p.id}">
+   <div class="p4-head"><span class="code">${c}</span><span class="t">${esc(p.title)||"Nieuw project"}</span><span class="meta">${nf(num(p.uren))} u</span><span class="pill ${a.cls}">${a.label}</span></div>
+   <div class="formtag">Formulier: <a href="${FORM_URL[p.type]}" target="_blank" rel="noopener">${FORM_NAME[p.type]}</a>${p.type==="prod"?` · mede programmatuur: ${p.medeProg?"ja":"nee"}`:""}</div>
+   <div class="toolbar" style="justify-content:space-between"><span class="hint" id="g4s-${p.id}">${g?"Laatst verwerkt. Je kunt de velden hieronder bewerken.":"Nog niet verwerkt."}</span>
+     <div class="toolbar"><button class="btn sm" type="button" data-g4stop="${p.id}" hidden>Stop</button><button class="btn primary" type="button" data-g4="${p.id}">${g?"Opnieuw verwerken":"Verwerk tot aanvraagtekst"}</button></div></div>
+   ${g&&g.let_op?`<div class="verdict v-red"><div class="vh">Let op</div><div>${esc(g.let_op)}</div></div>`:""}
+   ${g?`<div class="vtabs" role="tablist"><button type="button" class="${p.view!=="edit"?"on":""}" data-view="${p.id}:form" role="tab" aria-selected="${p.view!=="edit"}">Formulieroverzicht</button><button type="button" class="${p.view==="edit"?"on":""}" data-view="${p.id}:edit" role="tab" aria-selected="${p.view==="edit"}">Bewerken</button></div>
+   ${p.view==="edit"?`<div class="g4list">${fs.map(f=>`<div class="fld"><div class="flab"><label for="g4-${p.id}-${f[0]}">${f[1]}</label><span class="cnt" id="cn-${p.id}-${f[0]}"></span></div><span class="hint">${esc(f[3])}</span><textarea id="g4-${p.id}-${f[0]}" data-g4f="${p.id}:${f[0]}" style="min-height:${f[2]>=2000?180:f[2]>=1500?130:90}px">${esc(g[f[0]]||"")}</textarea></div>`).join("")}</div>`:formView(p)}
+   <div class="checks" id="ck-${p.id}"></div>
+   <div class="toolbar pdfbar"><button class="btn primary" type="button" data-pdf="${p.id}">Download ingevuld RVO-formulier (pdf)</button><span class="hint" id="pdfm-${p.id}"></span></div>`:""}
+  </div>`;
+}
+function counts(p){fieldsFor(p).forEach(f=>{const el=document.getElementById(`cn-${p.id}-${f[0]}`);if(!el)return;const n=((p.gen||{})[f[0]]||"").length;el.textContent=nf(n)+" / "+nf(f[2]);el.classList.toggle("over",n>f[2])})}
+function renderChecks(p){counts(p);const el=document.getElementById("ck-"+p.id);if(!el)return;
+  const cs=checks4(p),ok=cs.filter(c=>c[0]).length;
+  el.innerHTML=`<div class="ck-head">Checklist vóór indiening <span class="pill ${ok===cs.length?"v-green":"v-amber"}">${ok}/${cs.length}</span></div><ul>${cs.map(c=>`<li class="${c[0]?"ok":"no"}">${c[0]?"✓":"!"} ${esc(c[1])}</li>`).join("")}</ul>`}
+function buildApp(){
+  const el=document.getElementById("app4");if(!el)return;ensure();
+  const rules=document.getElementById("rules4");
+  if(rules&&!rules.dataset.done){rules.dataset.done=1;rules.innerHTML=`
+    <div class="rgrid"><div><h3>S&amp;O-criteria</h3><ul>${RULES.criteria.map(c=>`<li><b>${c[0]}</b>: ${esc(c[1])} <span class="src">${c[2]}</span></li>`).join("")}</ul></div>
+    <div><h3>Checklist vóór indiening (Arnoud)</h3><ul>${RULES.checklist.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <h3 style="margin-top:12px">Geen S&amp;O</h3><ul>${RULES.nietSO.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <h3 style="margin-top:12px">Woordgebruik</h3><ul>${RULES.woorden.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <h3 style="margin-top:12px">Opbouw</h3><p class="hint" style="color:var(--fg)">${esc(RULES.opbouw)}</p></div></div>`}
+  el.innerHTML=S.ents.map(e=>{const ap=appFor(e),pr=S.projects.filter(p=>p.entId===e.id),r=calc(e),u=pr.reduce((s,p)=>s+num(p.uren),0);
+    return `<article class="panel app" id="app-${e.id}">
+     <div class="app-head"><h3 class="app-t">Aanvraag ${esc(e.name)}</h3><span class="meta">${pr.length} project${pr.length===1?"":"en"} · ${nf(u)} van max. ${nf(r.H)} S&amp;O-uren</span></div>
+     ${dossierBar(e)}
+     <div class="basis4">
+      <div class="fld"><label for="ap-${e.id}-van">Periode van</label><input type="month" id="ap-${e.id}-van" data-ap="${e.id}:van" value="${ap.van}"></div>
+      <div class="fld"><label for="ap-${e.id}-tot">Periode t/m</label><input type="month" id="ap-${e.id}-tot" data-ap="${e.id}:tot" value="${ap.tot}"></div>
+      <div class="fld"><label for="ap-${e.id}-type">Aanvraagtype</label><select id="ap-${e.id}-type" data-ap="${e.id}:type">${["Nieuwe aanvraag","Aanvulling op vormvrije aanvraag","Wijziging lopende aanvraag"].map(t=>`<option ${t===ap.type?"selected":""}>${t}</option>`).join("")}</select></div>
+      <div class="fld"><label for="ap-${e.id}-reg">Kosten en uitgaven</label><select id="ap-${e.id}-reg" data-ap="${e.id}:regiem"><option value="forfait" ${ap.regiem!=="werkelijk"?"selected":""}>Forfaitaire berekening</option><option value="werkelijk" ${ap.regiem==="werkelijk"?"selected":""}>Werkelijke kosten en uitgaven</option></select></div>
+      <div class="fld"><label for="ap-${e.id}-kvk">KvK-nummer</label><input type="text" inputmode="numeric" maxlength="8" id="ap-${e.id}-kvk" data-kvk="${e.id}" value="${esc(e.kvk||"")}" placeholder="8 cijfers"></div>
+      <div class="fact"><span>Startersfaciliteit</span><b>${e.techno?"Ja":"Nee"}</b></div>
+      <div class="fact"><span>S&amp;O-uurloon</span><b>€ ${r.ul}</b></div>
+      <div class="fact"><span>Werknemers S&amp;O</span><b>${e.so.length}</b></div>
+     </div>
+     ${pr.length?pr.map(proj4Html).join(""):`<div class="empty">Geen projecten voor deze entiteit. Maak ze aan in stap 3.</div>`}
+     ${pr.length?`<div class="toolbar"><button class="btn" type="button" data-pdfall="${e.id}">Download alle formulieren van ${esc(e.name)}</button><span class="hint" id="pdfam-${e.id}"></span></div>`:""}
+     ${pr.length?`<details class="doc"><summary>Volledige aanvraagtekst ${esc(e.name)}</summary><div class="toolbar" style="justify-content:flex-end;padding:0 0 8px"><span class="hint" id="dc-${e.id}"></span><button class="btn sm" type="button" data-doccopy="${e.id}">Kopieer volledige tekst</button></div><pre id="doc-${e.id}"></pre></details>`:""}
+    </article>`}).join("");
+  S.projects.forEach(p=>{renderChecks(p)});S.ents.forEach(e=>{const d=document.getElementById("doc-"+e.id);if(d)d.textContent=docText(e)});
+}
+function setG4Ui(id){const b=document.querySelector(`[data-g4="${id}"]`);if(!b)return;const run=!!GEN4[id];b.disabled=run;
+  if(run)b.textContent="Bezig…";const st=document.querySelector(`[data-g4stop="${id}"]`);if(st)st.hidden=!run}
+async function generate4(p){
+  const s=document.getElementById("g4s-"+p.id);
+  if(!SAMPLE){p.gen=template4(p);save();buildApp();const s2=document.getElementById("g4s-"+p.id);if(s2)s2.textContent="Conceptopzet gemaakt (zonder AI). Vul de [aanvullen]-plekken in.";return}
+  const ctl=new AbortController();GEN4[p.id]=ctl;setG4Ui(p.id);if(s)s.textContent="Claude verwerkt het project volgens de schrijfregels…";
+  let msg="";
+  try{const j=await SAMPLE.json(prompt4(p),{signal:ctl.signal,cache:false,onText:({text})=>{if(s)s.textContent="Claude schrijft… ("+text.length+" tekens)"}});
+    p.gen=fromJson(j||{},p);msg="Klaar. Controleer de velden en de checklist.";}
+  catch(e){msg=e&&e.code==="cancelled"?"Gestopt.":(ERR[e&&e.code]||(e&&e.code==="invalid_json"?"Het antwoord was onvolledig. Probeer het opnieuw.":"Er ging iets mis. Probeer het opnieuw."));
+    if(e&&["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code))SAMPLE=null}
+  finally{delete GEN4[p.id];save();buildApp();const s2=document.getElementById("g4s-"+p.id);if(s2)s2.textContent=msg}
+}
+document.addEventListener("input",ev=>{const t=ev.target,d=t.dataset;
+  if(d.kvk){const e=S.ents.find(x=>x.id===d.kvk);e.kvk=t.value.replace(/\D/g,"").slice(0,8);save();return}
+  if(d.ap){const[id,k]=d.ap.split(":"),e=S.ents.find(x=>x.id===id);appFor(e)[k]=t.value;save();if(k==="regiem"){buildApp();return}const doc=document.getElementById("doc-"+id);if(doc)doc.textContent=docText(e);return}
+  if(d.g4f){const[id,k]=d.g4f.split(":"),p=getP(id);p.gen[k]=t.value;save();renderChecks(p);const doc=document.getElementById("doc-"+p.entId);const e=S.ents.find(x=>x.id===p.entId);if(doc&&e)doc.textContent=docText(e)}
+});
+document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;const d=b.dataset;
+  if(d.g4){const p=getP(d.g4);if(!GEN4[p.id])generate4(p);return}
+  if(d.view){const[id,v]=d.view.split(":"),p=getP(id);p.view=v;save();buildApp();const el=document.getElementById("p4-"+id);if(el)el.scrollIntoView({block:"start"});return}
+  if(d.g4stop){GEN4[d.g4stop]&&GEN4[d.g4stop].abort();return}
+  if(d.doccopy){const e=S.ents.find(x=>x.id===d.doccopy),txt=docText(e),m=document.getElementById("dc-"+e.id),pre=document.getElementById("doc-"+e.id);
+    const done=ok=>{m.textContent=ok?"Gekopieerd":"Tekst geselecteerd; kopieer met Ctrl/Cmd+C";setTimeout(()=>m.textContent="",3000)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+    try{navigator.clipboard.writeText(txt).then(()=>done(true),()=>{sel();done(false)})}catch(x){sel();done(false)}}
+});
+window.addEventListener("hashchange",()=>{if(location.hash==="#aanvraag")buildApp();if(location.hash==="#projecten")buildProjects()});
+buildApp();route();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+/* ===== Offline RVO-projectformulier (v1.9) invullen ===== */
+const PDFMAP={
+ prog:[["WbsoProjectomschrijving","omschrijving",2000,"tellerProjectomschrijving"],["WbsoBeschrijvingTechnischProbleem","knelpunten",2000,"tellerBeschrijvingTechnischProbleem"],["WbsoGekozenOplossingsrichting","oplossingen",2000,"tellerGekozenOplossingsrichting"],["WbsoBestaandeMethodenTechnieken","omgeving",1500,"tellerBestaandeMethodenEnTechnieken"],["WbsoZelfOntwikkelenMethoden","nieuwheid",1500,"tellerBestaandeMethoden"]],
+ prod:[["WbsoProjectomschrijving","omschrijving",2000,"tellerProjectomschrijving"],["WbsoTWOVraag1","knelpunten",2000,"tellerKnelpuntenFysiek"],["WbsoTWOVraag2","oplossingen",2000,"tellerOplossingenFysiek"],["WbsoTWOVraag3","nieuwheid",2000,"tellerNieuwheidFysiek"]],
+ prodProg:[["WbsoBeschrijvingTechnischProbleem","knelpuntenProg",2000,"tellerBeschrijvingTechnischProbleem"],["WbsoGekozenOplossingsrichting","oplossingenProg",2000,"tellerGekozenOplossingsrichting"],["WbsoBestaandeMethodenTechnieken","omgeving",1500,"tellerBestaandeMethodenEnTechnieken"],["WbsoZelfOntwikkelenMethoden","nieuwheidProg",1500,"tellerBestaandeMethoden"]],
+ two:[["WbsoProjectomschrijving","omschrijving",2000,"tellerProjectomschrijving"],["WbsoTWOVraag1","aanleiding",2000,"tellerTWO1"],["WbsoTWOVraag2","onderzoeksvragen",2000,"tellerTWO2"],["WbsoTWOVraag3","opzet",1500,"tellerTWO3"],["WbsoTWOVraag4","uitkomsten",1500,"tellerTWO4"],["WbsoTWOVraag5","technologiegebied",1500,"tellerTWO5"]]
+};
+async function buildPdf(p){
+  if(!window.PDFLib)throw {code:"lib"};
+  const e=S.ents.find(x=>x.id===p.entId)||{name:""},g=p.gen||{};
+  const res=await fetch("forms/"+p.type+".pdf");if(!res.ok)throw {code:"form"};
+  const doc=await PDFLib.PDFDocument.load(await res.arrayBuffer());const form=doc.getForm();
+  const font=await doc.embedFont(PDFLib.StandardFonts.Helvetica);const cs=new Set(font.getCharacterSet());
+  const REPL={"⇒":"=>","→":"->","←":"<-","≥":">=","≤":"<=","≈":"~","−":"-","✓":"v"," ":" "," ":" "," ":" "};
+  const clean=t=>Array.from(String(t||"").replace(/\r/g,"")).map(ch=>REPL[ch]!==undefined?REPL[ch]:(ch==="\n"||cs.has(ch.codePointAt(0))?ch:"")).join("");
+  const set=(k,v,fs)=>{try{const tf=form.getTextField(k);if(fs){try{tf.setFontSize(fs)}catch(y){try{tf.acroField.setDefaultAppearance("/Helv "+fs+" Tf 0 g")}catch(z){}}}const ml=tf.getMaxLength();let t=clean(v);if(ml&&t.length>ml)t=t.slice(0,ml);tf.setText(t)}catch(x){}};
+  const teller=(k,lim,v)=>{if(k)set(k,Math.max(0,lim-clean(v).length)+" tekens over.")};
+  const dmy=d=>d?d.split("-").reverse().join("-"):"";
+  set("Bedrijfsnaam",e.name);set("KvK-nummer",(e.kvk||"").replace(/\D/g,""));
+  set("Projectnummer",pnum(p));set("Projectnaam",(p.title||"").slice(0,200));
+  const partners=parsePartners(p.partners);
+  try{form.getRadioGroup("Samenwerking").select(partners.length?"SamenwerkingJa":"SamenwerkingNee")}catch(x){}
+  partners.forEach((r,i)=>{set("Projectrelatienaam"+(i+1),r.naam);set("Projectrelatieplaats"+(i+1),r.plaats);set("Projectrol"+(i+1),r.rol)});
+  set("DatumStart",dmy(p.start));
+  p.planning.filter(w=>w.wp.trim()).slice(0,10).forEach((w,i)=>{set("Ontwikkeling"+(i+1),w.wp.trim());set("DatumGereed"+(i+1),dmy(w.datum))});
+  set("WbsoToelichtingWijzigingPlanning",p.update||"",9);teller("tellerWijzigingPlanning",2000,p.update||"");
+  if(num(p.uren))set("WbsoSOUrenBegroot",String(Math.round(num(p.uren))));
+  if(e.id&&appFor(e).regiem==="werkelijk"){set("WbsoKostenOmschrijving",p.kostenOms||"",9);teller("tellerKostenOmschrijving",500,p.kostenOms||"");if(num(p.kostenBedrag))set("WbsoKostenBedrag",String(Math.round(num(p.kostenBedrag))));
+    set("WbsoUitgavenOmschrijving",p.uitgavenOms||"",9);teller("tellerUitgavenOmschrijving",500,p.uitgavenOms||"");if(num(p.uitgavenBedrag))set("WbsoUitgavenBedrag",String(Math.round(num(p.uitgavenBedrag))))}
+  if(p.type==="prod"){try{form.getDropdown("WbsoProjectzwaartepunt").select(p.zwaartepunt==="PPS"?"Technisch nieuw productieproces":"Technisch nieuw product")}catch(x){}
+    try{form.getRadioGroup("WbsoMedeProgrammatuurOntwikkeld").select(p.medeProg?"J":"N")}catch(x){}}
+  const map=[...PDFMAP[p.type],...(p.type==="prod"&&p.medeProg?PDFMAP.prodProg:[])];
+  const over=[];
+  map.forEach(([f,k,lim,t])=>{const v=g[k]||"";set(f,v,9);teller(t,lim,v);if(clean(v).length>lim)over.push(k)});
+  form.updateFieldAppearances(font);
+  return {bytes:await doc.save(),over};
+}
+const linkDL={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000);return {status:"saved"}}};
+let DL=window.claude?null:linkDL;(async()=>{try{if(window.claude&&window.claude.use)DL=await window.claude.use("downloads")}catch(x){DL=null}})();
+async function downloadPdf(p,msgEl){
+  const say=t=>{if(msgEl)msgEl.textContent=t};
+  if(!p.gen){say("Verwerk het project eerst tot aanvraagtekst.");return}
+  say("Formulier invullen…");
+  try{const {bytes,over}=await buildPdf(p);
+    const name=`Projectformulier WBSO ${pnum(p)} ${(p.title||"project").replace(/[\\/:*?"<>|]+/g,"").slice(0,60)}.pdf`;
+    if(DL){const r=await DL.save({filename:name,data:new Blob([bytes],{type:"application/pdf"})});
+      say((r&&r.status==="delivered"?"Formulier aangeboden.":"Formulier opgeslagen.")+(over.length?" Let op: tekst boven de tekenlimiet bij "+over.length+" veld(en).":""))}
+    else say("Downloaden kan alleen in de Claude-app of op claude.ai.");
+  }catch(x){say(x&&x.code==="lib"?"De pdf-bibliotheek is niet geladen. Laad de pagina opnieuw.":x&&x.code==="form"?"Het RVO-formulier kon niet worden geladen.":x&&x.code==="declined"?"Opslaan geannuleerd.":"Opslaan is niet gelukt"+(x&&x.code?" ("+x.code+")":"")+".")}
+}
+document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
+  if(b.dataset.pdf){const p=getP(b.dataset.pdf);downloadPdf(p,document.getElementById("pdfm-"+p.id))}
+  if(b.dataset.pdfall){const pr=S.projects.filter(p=>p.entId===b.dataset.pdfall&&p.gen);const m=document.getElementById("pdfam-"+b.dataset.pdfall);
+    (async()=>{for(const p of pr){await downloadPdf(p,m)}if(!pr.length&&m)m.textContent="Nog geen verwerkte projecten."})()}
+});
+</script>
+
+
+</body>
+</html>
