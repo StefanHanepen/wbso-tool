@@ -1,4 +1,4 @@
-// WBSO-tool (MijnWBSO) – Cloudflare Worker
+// WBSO-tool (MijnArnoud) – Cloudflare Worker
 //
 // Instellingen in Cloudflare (Settings > Variables and Secrets):
 //   APP_SECRET         (secret)  - zelfgekozen lange willekeurige sleutel (min. 32 tekens) om de tool te openen
@@ -38,13 +38,13 @@ const SEC = { "x-frame-options": "DENY", "referrer-policy": "no-referrer", "x-co
 const html = (body, status = 200, extra = {}) => new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", ...SEC, ...extra } });
 const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", ...SEC } });
 
-const LOGIN_HTML = (fout) => `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MijnWBSO – inloggen</title>
+const LOGIN_HTML = (fout) => `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MijnArnoud – inloggen</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600&display=swap">
 <style>body{margin:0;font-family:"Hanken Grotesk",Arial,sans-serif;background:#F5F0E6;color:#363E4C;display:grid;place-items:center;min-height:100vh}
 .c{background:#fff;border:1px solid #D9DDE4;border-radius:14px;padding:28px;width:min(420px,92vw);display:grid;gap:14px;box-shadow:0 8px 30px rgba(12,26,49,.08)}
 h1{margin:0;font-size:22px;color:#0C1A31}label{font-size:13px;font-weight:600;color:#0C1A31}input{font:inherit;padding:10px 12px;border:1px solid #D9DDE4;border-radius:8px;width:100%;box-sizing:border-box}
 button{font:inherit;font-weight:600;background:#377132;color:#fff;border:0;border-radius:8px;padding:11px;cursor:pointer}.f{color:#9A2B1F;font-size:13px}</style></head>
-<body><form class="c" method="post" action="/login"><h1>MijnWBSO</h1><p style="margin:0">Interne WBSO-tool. Log in met de sleutel.</p>${fout ? '<div class="f">Onjuiste sleutel.</div>' : ""}
+<body><form class="c" method="post" action="/login"><h1>MijnArnoud</h1><p style="margin:0">Interne WBSO-tool. Log in met de sleutel.</p>${fout ? '<div class="f">Onjuiste sleutel.</div>' : ""}
 <label for="k">Sleutel</label><input id="k" name="key" type="password" autocomplete="current-password" required autofocus><button type="submit">Openen</button></form></body></html>`;
 
 async function handleGenerate(request, env) {

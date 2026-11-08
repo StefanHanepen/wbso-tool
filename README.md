@@ -1,6 +1,6 @@
 # wbso-tool
 
-Interne WBSO-tool van MijnWBSO (Cloudflare Worker), zelfde opzet als exact-mcp.
+MijnArnoud: interne WBSO-tool in de huisstijl van MijnWBSO (Cloudflare Worker), zelfde opzet als exact-mcp.
 
 - `worker.js` – inloggen met sleutel, en `/api/generate` voor de aanvraagteksten (Claude)
 - `public/index.html` – de tool (stap 1 t/m 9)
